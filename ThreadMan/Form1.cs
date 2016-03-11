@@ -96,9 +96,6 @@ namespace ThreadMan
             btnAbort.Enabled = selected != null && !selected.IsStopped();
             btnMinimize.Enabled = HasWindows();
         }
-
-     
-
         private void UpdateJobs()
         {
             var selected = GetSelected();
@@ -183,6 +180,7 @@ namespace ThreadMan
             TerminateJobs();
         }
 
+        // TODO: приостановить/возобновить
         private void btnToggle_Click(object sender, EventArgs e)
         {
             var selected = GetSelected();
@@ -249,6 +247,7 @@ namespace ThreadMan
             return false;
         }
 
+        // TODO: Свернуть/Развернуть
         private void btnMinimize_Click(object sender, EventArgs e)
         {
             MinimizeWindows();
