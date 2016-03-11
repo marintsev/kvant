@@ -34,6 +34,7 @@ namespace ThreadMan
         static int Index = 1;
         int index;
         private List<Listener> auditory = null;
+        public string Text = "";
 
         public Work()
         {
@@ -100,6 +101,19 @@ namespace ThreadMan
                 Debug.WriteLine("Work.Toggle with state {0}", state);
         }
 
+        /// <summary>
+        /// Выполняется.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsAlive()
+        {
+            return !(IsStopped());
+        }
+
+        /// <summary>
+        /// Выполняется или завершён.
+        /// </summary>
+        /// <returns></returns>
         public bool IsActive()
         {
             return state == State.Running || state == State.Done;
@@ -122,7 +136,10 @@ namespace ThreadMan
 
         public double GetProgress()
         {
-            return (double)counter / (double)max_counter;
+            var d = (double)counter / (double)max_counter;
+            if (double.IsNaN(d))
+                return 0.0;
+            return d;
         }
 
         public string GetName()
@@ -130,14 +147,13 @@ namespace ThreadMan
             return string.Format("Задание №{0}", index);
         }
 
-        public string ToString()
+        public override string ToString()
         {
             if( state == State.Running )
-            {
-                return string.Format("{0} ({1} {2,3:0}%)", GetName(), state, GetProgress()*100.0);
-            }
+                Text = string.Format("{0} ({1} {2,3:0}%)", GetName(), state, GetProgress()*100.0);
             else
-                return string.Format("{0} ({1})", GetName(), state);
+                Text = string.Format("{0} ({1})", GetName(), state);
+            return Text;
         }
 
         public State GetState()
@@ -158,7 +174,7 @@ namespace ThreadMan
                     counter = i;
                 }
             }
-            catch (ThreadAbortException tae)
+            catch (ThreadAbortException )
             {
                 state = State.Aborted;
                 return;

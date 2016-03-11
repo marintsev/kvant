@@ -15,11 +15,18 @@ namespace ThreadMan
     public partial class Form1 : Form
     {
         private List<Work> jobs = null;
+        private Dictionary<Work, Form2> forms = null;
+        private BindingList<Work> bl = null;
 
         public Form1()
         {
             InitializeComponent();
             jobs = new List<Work>();
+            forms = new Dictionary<Work, Form2>();
+
+            bl =new BindingList<Work>();
+            listBox1.DataSource = bl;
+            listBox1.DisplayMember = "Text";
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -27,12 +34,42 @@ namespace ThreadMan
             var work = new Work();
             work.AddListener(() =>
             {
-                BeginInvoke(new Action(() => { UpdateJobs(); }));
+                BeginInvoke(new Action(() =>
+                {
+                    UpdateJobs();
+                }));
             });
             jobs.Add(work);
-            UpdateJobs();
+            //UpdateJobs();
+            CreateForm(work);
             work.Start();
-            new Form2(work).Show();
+
+        }
+
+        public void CreateForm(Work work)
+        {
+            if (!forms.ContainsKey(work))
+            {
+                var form = new Form2(work);
+                forms[work] = form;
+                form.Show();
+            }
+            else
+            {
+                var form = forms[work];
+                if (form.IsDisposed)
+                {
+                    forms.Remove(work);
+                    CreateForm(work);
+                }
+                else
+                {
+                    form.Show();
+                    form.WindowState = FormWindowState.Normal;
+                    form.Focus();
+                    form.Activate();
+                }
+            }
         }
 
         private void CleanJobs()
@@ -57,22 +94,30 @@ namespace ThreadMan
             var selected = GetSelected();
             btnToggle.Enabled = selected != null && selected.CanToggle();
             btnAbort.Enabled = selected != null && !selected.IsStopped();
+            btnMinimize.Enabled = HasWindows();
         }
+
+     
 
         private void UpdateJobs()
         {
-            listBox1.Items.Clear();
+            var selected = GetSelected();
+            bl.Clear();
             foreach (var job in jobs)
-            {
-                listBox1.Items.Add(job.ToString());
-            }
+                bl.Add(job);
+            listBox1.SelectedItem = selected;
+
             UpdateUI();
         }
 
+        /// <summary>
+        /// Проверяется при закрытии окна.
+        /// </summary>
+        /// <returns></returns>
         private bool HasActiveJobs()
         {
             foreach (var job in jobs)
-                if (job.IsActive())
+                if (job.IsAlive())
                     return true;
             return false;
         }
@@ -111,14 +156,16 @@ namespace ThreadMan
             {
                 if (listBox1.Items.Count != 0)
                     MessageBox.Show("Не выбрано задание.");
+                return;
             }
+            CreateForm(selected);
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (HasActiveJobs())
             {
-                MessageBox.Show( "Есть активные задания." );
+                MessageBox.Show("Есть активные задания.");
                 e.Cancel = true;
             }
         }
@@ -126,7 +173,7 @@ namespace ThreadMan
         private Work GetSelected()
         {
             var index = listBox1.SelectedIndex;
-            if( index == -1 )
+            if (index == -1)
                 return null;
             return jobs[index];
         }
@@ -162,13 +209,49 @@ namespace ThreadMan
 
         private void CarefulUpdateJobs()
         {
-           
+            if (bl != null)
+            {
+                for(int i = 0; i < bl.Count; i++)
+                    bl.ResetItem(i);
+            }
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            UpdateJobs();
-            //CarefulUpdateJobs();
+            CarefulUpdateJobs();
+        }
+
+        private void SetWindowsState(FormWindowState state)
+        {
+            foreach (var form in forms.Values)
+            {
+                form.WindowState = state;
+            }
+        }
+
+        private void MinimizeWindows()
+        {
+            SetWindowsState(FormWindowState.Minimized);
+        }
+
+        private void MaximizeWindows()
+        {
+            SetWindowsState(FormWindowState.Maximized);
+        }
+
+        private bool HasWindows()
+        {
+            foreach (var form in forms.Values)
+            {
+                if (!form.IsDisposed)
+                    return true;
+            }
+            return false;
+        }
+
+        private void btnMinimize_Click(object sender, EventArgs e)
+        {
+            MinimizeWindows();
         }
     }
 }

@@ -36,6 +36,7 @@
             this.btnClean = new System.Windows.Forms.Button();
             this.btnTerminate = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.btnMinimize = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // button1
@@ -103,11 +104,22 @@
             this.timer1.Enabled = true;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // btnMinimize
+            // 
+            this.btnMinimize.Location = new System.Drawing.Point(360, 159);
+            this.btnMinimize.Name = "btnMinimize";
+            this.btnMinimize.Size = new System.Drawing.Size(108, 23);
+            this.btnMinimize.TabIndex = 6;
+            this.btnMinimize.Text = "Свернуть окна";
+            this.btnMinimize.UseVisualStyleBackColor = true;
+            this.btnMinimize.Click += new System.EventHandler(this.btnMinimize_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(480, 304);
+            this.Controls.Add(this.btnMinimize);
             this.Controls.Add(this.btnTerminate);
             this.Controls.Add(this.btnClean);
             this.Controls.Add(this.listBox1);
@@ -133,6 +145,7 @@
         private System.Windows.Forms.Button btnClean;
         private System.Windows.Forms.Button btnTerminate;
         private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Button btnMinimize;
 
     }
 }

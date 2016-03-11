@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace ThreadMan
 {
@@ -15,25 +16,27 @@ namespace ThreadMan
     {
         Work work;
 
-        public Form2( Work work_ )
+        public Form2(Work work_)
         {
             work = work_;
             InitializeComponent();
         }
 
+        // TODO: Останавливать таймер, когда он не нужен.
         private void timer1_Tick(object sender, EventArgs e)
         {
             if (work.GetState() == Work.State.Aborted || work.GetState() == Work.State.Done)
                 Close();
 
+            var enabled = work.IsActive();
+            progressBar1.SetState(enabled ? ProgressBarUtils.PBST_NORMAL : ProgressBarUtils.PBST_PAUSED);
+
             double p = work.GetProgress();
-            if (!double.IsNaN(p))
-            {
-                progressBar1.Minimum = 0;
-                progressBar1.Maximum = 65535;
-                progressBar1.Value = (int)(p * 65535.0);
-            }
-            progressBar1.Enabled = work.IsActive() && !double.IsNaN(p);
+
+            progressBar1.Minimum = 0;
+            progressBar1.Maximum = 65535;
+            progressBar1.Value = (int)(p * 65535.0);
+
 
             btnToggle.Enabled = work.CanToggle();
             if (work.IsPaused())
@@ -63,5 +66,36 @@ namespace ThreadMan
         {
             work.Stop();
         }
+    }
+
+    public static class ProgressBarUtils
+    {
+        public const uint PBST_PAUSED = 0x0003;
+        public const uint PBST_ERROR = 0x0002;
+        public const uint PBST_NORMAL = 0x0001;
+
+        public static void SetState(this ProgressBar pb, uint state)
+        {
+
+
+            if (!pb.IsDisposed)
+            {
+                SendMessage(pb.Handle,
+        0x400 + 16, //WM_USER + PBM_SETSTATE
+        state, //PBST_PAUSED
+        0);
+            }
+
+            /*SendMessage(pb.Handle,
+              0x400 + 16, //WM_USER + PBM_SETSTATE
+              0x0002, //PBST_ERROR
+              0);*/
+        }
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        static extern uint SendMessage(IntPtr hWnd,
+          uint Msg,
+          uint wParam,
+          uint lParam);
     }
 }
