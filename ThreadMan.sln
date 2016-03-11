@@ -5,6 +5,8 @@ VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreadMan", "ThreadMan\ThreadMan.csproj", "{510831A0-FE36-4971-9E1C-C94A732288C8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rects", "Rects\Rects.csproj", "{BFEC66D0-C40E-4412-BD5C-1E9D3CDCFF6B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{510831A0-FE36-4971-9E1C-C94A732288C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{510831A0-FE36-4971-9E1C-C94A732288C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{510831A0-FE36-4971-9E1C-C94A732288C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFEC66D0-C40E-4412-BD5C-1E9D3CDCFF6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFEC66D0-C40E-4412-BD5C-1E9D3CDCFF6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFEC66D0-C40E-4412-BD5C-1E9D3CDCFF6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFEC66D0-C40E-4412-BD5C-1E9D3CDCFF6B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
