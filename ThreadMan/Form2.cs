@@ -27,10 +27,13 @@ namespace ThreadMan
                 Close();
 
             double p = work.GetProgress();
-            progressBar1.Minimum = 0;
-            progressBar1.Maximum = 65535;
-            progressBar1.Value = (int)( p * 65535.0 );
-            progressBar1.Enabled = work.IsActive();
+            if (!double.IsNaN(p))
+            {
+                progressBar1.Minimum = 0;
+                progressBar1.Maximum = 65535;
+                progressBar1.Value = (int)(p * 65535.0);
+            }
+            progressBar1.Enabled = work.IsActive() && !double.IsNaN(p);
 
             btnToggle.Enabled = work.CanToggle();
             if (work.IsPaused())

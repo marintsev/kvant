@@ -68,6 +68,7 @@ namespace ThreadMan
         public void Create()
         {
             thread = new Thread(Function);
+            thread.Priority = ThreadPriority.Lowest;
             state = State.Created;
         }
 
@@ -111,9 +112,17 @@ namespace ThreadMan
             thread.Abort();
         }
 
+        /// <summary>
+        /// Задание было прервано или закончено?
+        /// </summary>
+        public bool IsStopped()
+        {
+            return state == State.Aborted || state == State.Done;
+        }
+
         public double GetProgress()
         {
-            return counter / (double)max_counter;
+            return (double)counter / (double)max_counter;
         }
 
         public string GetName()
@@ -123,7 +132,12 @@ namespace ThreadMan
 
         public string ToString()
         {
-            return string.Format("{0} ({1})", GetName(), state);
+            if( state == State.Running )
+            {
+                return string.Format("{0} ({1} {2,3:0}%)", GetName(), state, GetProgress()*100.0);
+            }
+            else
+                return string.Format("{0} ({1})", GetName(), state);
         }
 
         public State GetState()
