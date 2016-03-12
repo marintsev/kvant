@@ -41,49 +41,52 @@ namespace Rects
             //Draw(2): 2541 ms
             //Draw(1): 10010 ms
 
+            // TODO: субпиксельная точность
+
             var hs = h / z;
             var ws = w / z;
-             
+
             var b = new Bitmap(ws, hs);
-            //var g = Graphics.FromImage(b);
-            for ( int y = 0; y < hs; y++)
+            for (int y = 0; y < hs; y++)
             {
-                //double dy = y * z / (double)(h - 1);
                 double dy = y / (double)(hs - 1);
-                for ( int x = 0; x < ws; x++)
+                for (int x = 0; x < ws; x++)
                 {
-                    //double dx = x * z / (double)(w - 1);
                     double dx = x / (double)(ws - 1);
                     var clr = GetColor(dx, dy);
-                    //var br = new SolidBrush();
                     b.SetPixel(x, y, clr);
-                    //g.FillRectangle(br, x * z, y * z, z, z);
                 }
             }
-            //g.Flush();
             return b;
-
-            /*
-             for (y = 0; y < height; y++)
-                    {
-                        for (x = 0; x < width; x++)
-                        {
-                            b.SetPixel(x, y, rt(x / (double)width, y / (double)height));
-                        }
-                    }
-             */
         }
 
         public Color GetColor(double x, double y)
         {
-            Color c = Color.Transparent;
+            Ray ray = new Ray();
+            ray.stop = false;
+            ray.x = x;
+            ray.y = y;
+            ray.c = Color.Transparent;
+
+            //for (int i = 0; i < objects.Count; i++)
+
             for (int i = objects.Count - 1; i >= 0; i--)
             {
                 var o = objects[i];
-                if (o.Trace(x, y, ref c))
-                    return c;
+                if (o.Trace(ref ray))
+                {
+                    if( ray.stop )
+                        return ray.c;
+                }
             }
-            return c;
+            return ray.c;
         }
+    }
+
+    public struct Ray
+    {
+        public double x, y;
+        public Color c;
+        public bool stop;
     }
 }

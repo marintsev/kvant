@@ -72,7 +72,6 @@ namespace Rects
             if (background == null)
                 return;
             e.Graphics.DrawImage(background, 0, 0, Width, Height);
-            //e.Graphics.DrawImageUnscaled(background, 0, 0);
         }
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
@@ -90,14 +89,28 @@ namespace Rects
         {
             var r = new Random();
             scene.Add(new RaytraceableGradient());
-            for (int i = 0; i < 100; i++)
+
+            for (int i = 0; i < 3; i++)
+            {
+                scene.Add(new RaytraceableCircle(new Circle(0.45-0.3, 0.25+i*0.2, 0.1, Color.FromArgb(255/(1+i), 255, 0, 0))));
+                scene.Add(new RaytraceableCircle(new Circle(0.55-0.3, 0.25 + i * 0.2, 0.1, Color.FromArgb(255/(1+i), 0, 255, 0))));
+
+                scene.Add(new RaytraceableCircle(new Circle(0.45 + 0.3, 0.25 + i * 0.2, 0.1, Color.FromArgb(255 / (1 + i), 0, 255, 0))));
+                scene.Add(new RaytraceableCircle(new Circle(0.55 + 0.3, 0.25 + i * 0.2, 0.1, Color.FromArgb(255 / (1 + i), 255, 0, 0))));
+            }
+
+            //scene.Add(new RaytraceableCircle(new Circle(0.25, 0.75, 0.33, Color.FromArgb(127, 0, 255, 0))));
+            //scene.Add(new RaytraceableCircle(new Circle(0.75, 0.75, 0.33, Color.FromArgb(127, 255, 0, 0))));
+
+            /*for (int i = 0; i < 100; i++)
             {
                 var c = new Circle(r.NextDouble(), r.NextDouble(),
                     r.NextDouble() * 0.1, Color.FromArgb(
+                    r.Next(256),
                     r.Next(256), r.Next(256), r.Next(256)
                     ));
                 scene.Add(new RaytraceableCircle(c));
-            }
+            }*/
             Redraw(Width, Height);
         }
 

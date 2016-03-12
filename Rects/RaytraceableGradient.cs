@@ -14,9 +14,11 @@ namespace Rects
         {
 
         }
-        public override bool Trace(double x, double y, ref Color c)
+        public override bool Trace(ref Ray ray)
         {
-            c = Color.FromArgb((int)(x * 255.0), 0, (int)(y * 255.0));
+            double f = ray.c.A/255.0;
+            ray.c = ColorUtils.Blend(ray.c, Color.FromArgb((int)(ray.x * 255.0), 0, (int)(ray.y * 255.0)),
+                f, 1 - f);
             return true;
         }
     }

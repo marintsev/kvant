@@ -14,11 +14,14 @@ namespace Rects
         {
             circ = c_;
         }
-        public override bool Trace(double x, double y, ref Color c)
+        public override bool Trace(ref Ray ray)
         {
-            if (circ.IsInside(x, y))
+            if (circ.IsInside(ray.x, ray.y))
             {
-                c = circ.Color;
+                double f = circ.Color.A / 255.0;
+                double g = ray.c.A / 255.0;
+                ray.c = ColorUtils.Blend(ray.c, circ.Color, g, 1-g);
+                ray.stop = circ.Color.A == 255;
                 return true;
             }
             return false;

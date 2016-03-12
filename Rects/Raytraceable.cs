@@ -12,10 +12,10 @@ namespace Rects
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="c"></param>
-        /// <returns>true, если столкнулся с непрозрачным объектом</returns>
-        public abstract bool Trace(double x, double y, ref Color c);
+        /// <param name="ray"></param>
+        /// <returns>true, если луч попал в объект.</returns>
+        public abstract bool Trace(ref Ray ray);
+
+        
     }
 }
