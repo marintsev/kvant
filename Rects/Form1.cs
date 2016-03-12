@@ -45,60 +45,24 @@ namespace Rects
             t = null;
             t = new Thread(() =>
             {
-                var b = new Bitmap(width, height);
                 int green = new Random().Next(256);
-                var g = Graphics.FromImage(b);
 
-                var sw = new Stopwatch();
-                sw.Start();
-                int x, y, z;
-                z = 64;
-                //z = 64;
-                Raytracer rt = (cx, cy) =>
+                
+                for (int z = 64; z >= 1; z /= 2)
                 {
-                    var color = scene.GetColor(cx, cy);
-                    /*if (color.A == 0)
-                        return GetColor((double)cx, (double)cy, green);
-                    else*/
-                    return color;
-                };
-                for (z = 64; z >= 2; z /= 2)
-                {
-                    for (y = 0; y < height / z; y++)
-                    {
-                        double dy = y * z / (double)(height - 1);
-                        for (x = 0; x < width / z; x++)
-                        {
-                            double dx = x * z / (double)(width - 1);
-                            var br = new SolidBrush(rt(dx, dy));
-                            g.FillRectangle(br, x * z, y * z, z, z);
-                        }
-                    }
-                    g.Flush();
+                    var sw = new Stopwatch();
+                    sw.Start();     
+                    var b = scene.Draw(width, height, z);
+                    sw.Stop();
+                    Debug.WriteLine("Draw({0}): {1} ms", z, sw.ElapsedMilliseconds);
                     lock (painting)
                     {
-                        background = (Image)b.Clone();
+                        background = b;
                     }
                     Invalidate();
+                    
                 }
-
-                lock (painting)
-                {
-                    for (y = 0; y < height; y++)
-                    {
-                        for (x = 0; x < width; x++)
-                        {
-                            b.SetPixel(x, y, rt(x / (double)width, y / (double)height));
-                        }
-                    }
-
-                    background = (Image)b.Clone();
-                }
-                Invalidate();
-                sw.Stop();
-                Debug.WriteLine("Draw: {0} ms", sw.ElapsedMilliseconds);
-
-
+                
             });
             t.Start();
         }
