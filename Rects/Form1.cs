@@ -38,11 +38,6 @@ namespace Rects
 
         private delegate Color Raytracer(double x, double y);
 
-        private Color GetColor(double x, double y, int k)
-        {
-            return Color.FromArgb((int)(x * 255.0), k, (int)(y * 255.0));
-        }
-
         private void Redraw(int width, int height)
         {
             if (t != null)
@@ -59,13 +54,13 @@ namespace Rects
                 int x, y, z;
                 z = 64;
                 //z = 64;
-                Raytracer rt = (cx,cy) =>
+                Raytracer rt = (cx, cy) =>
                 {
                     var color = scene.GetColor(cx, cy);
-                    if (color.A == 0)
+                    /*if (color.A == 0)
                         return GetColor((double)cx, (double)cy, green);
-                    else
-                        return color;
+                    else*/
+                    return color;
                 };
                 for (z = 64; z >= 2; z /= 2)
                 {
@@ -75,14 +70,14 @@ namespace Rects
                         for (x = 0; x < width / z; x++)
                         {
                             double dx = x * z / (double)(width - 1);
-                            var br = new SolidBrush(rt(dx,dy));
+                            var br = new SolidBrush(rt(dx, dy));
                             g.FillRectangle(br, x * z, y * z, z, z);
                         }
                     }
                     g.Flush();
                     lock (painting)
                     {
-                        background = (Image) b.Clone();
+                        background = (Image)b.Clone();
                     }
                     Invalidate();
                 }
@@ -93,11 +88,11 @@ namespace Rects
                     {
                         for (x = 0; x < width; x++)
                         {
-                            b.SetPixel(x, y, rt( x / (double)width, y / (double)height));
+                            b.SetPixel(x, y, rt(x / (double)width, y / (double)height));
                         }
                     }
 
-                    background = (Image) b.Clone();
+                    background = (Image)b.Clone();
                 }
                 Invalidate();
                 sw.Stop();
@@ -110,14 +105,9 @@ namespace Rects
 
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
-            /*lock (painting)
-            {*/
-                if (background == null)
-                    return;
-                e.Graphics.DrawImageUnscaled(background, 0, 0);
-            //}
-            //BackgroundImage
-            //e.Graphics.DrawImage()
+            if (background == null)
+                return;
+            e.Graphics.DrawImageUnscaled(background, 0, 0);
         }
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
@@ -134,13 +124,14 @@ namespace Rects
         private void Form1_Load(object sender, EventArgs e)
         {
             var r = new Random();
-            for (int i = 0; i < 100; i++  )
+            scene.Add(new RaytraceableGradient());
+            for (int i = 0; i < 100; i++)
             {
                 var c = new Circle(r.NextDouble(), r.NextDouble(),
                     r.NextDouble() * 0.1, Color.FromArgb(
-                    r.Next(256),r.Next(256),r.Next(256)
+                    r.Next(256), r.Next(256), r.Next(256)
                     ));
-                scene.Add(c);
+                scene.Add(new RaytraceableCircle(c));
             }
             Redraw(Width, Height);
         }
@@ -151,82 +142,6 @@ namespace Rects
                 Redraw(Width, Height);
             else if (e.KeyChar == (char)Keys.Escape)
                 Close();
-        }
-    }
-
-    public class Point
-    {
-        double x, y;
-
-        public Point(double x_, double y_)
-        {
-            x=x_;
-            y=y_;
-        }
-    }
-
-    public class Scene
-    {
-        private List<Circle> objects = null;
-
-        public Scene()
-        {
-            objects = new List<Circle>();
-        }
-
-        public void Add( Circle o )
-        {
-            objects.Add(o);
-        }
-
-        public Color GetColor( double x, double y )
-        {
-            foreach( var o in objects )
-            {
-                if (o.IsInside(x, y))
-                    return o.Color;
-            }
-            return Color.Transparent;
-        }
-    }
-
-    public class Pointu
-    {
-        double x, y, t;
-        public Pointu( double x_, double y_, double t_ )
-        {
-            x=x_;
-            y=y_;
-            t=t_;
-        }
-    }
-
-    public static class MathUtils
-    {
-        public static double Sqr( this double x )
-        {
-            return x * x;
-        }
-    }
-
-    public class Circle
-    {
-        double cx, cy, r;
-        Color color;
-
-        public Color Color { get { return color; } }
-
-        public Circle(double x_,double y_, double r_, Color color_)
-        {
-            cx = x_;
-            cy = y_;
-            r = r_;
-            color = color_;
-        }
-
-        public bool IsInside(double x, double y)
-        {
-            return (x - cx).Sqr() + (y - cy).Sqr() < r.Sqr();
         }
     }
 }
