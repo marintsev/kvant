@@ -40,20 +40,27 @@ namespace Rects
             //Draw(4): 633 ms
             //Draw(2): 2541 ms
             //Draw(1): 10010 ms
+
+            var hs = h / z;
+            var ws = w / z;
              
-            var b = new Bitmap(w, h);
-            var g = Graphics.FromImage(b);
-            for ( int y = 0; y < h / z; y++)
+            var b = new Bitmap(ws, hs);
+            //var g = Graphics.FromImage(b);
+            for ( int y = 0; y < hs; y++)
             {
-                double dy = y * z / (double)(h - 1);
-                for ( int x = 0; x < w / z; x++)
+                //double dy = y * z / (double)(h - 1);
+                double dy = y / (double)(hs - 1);
+                for ( int x = 0; x < ws; x++)
                 {
-                    double dx = x * z / (double)(w - 1);
-                    var br = new SolidBrush(GetColor(dx, dy));
-                    g.FillRectangle(br, x * z, y * z, z, z);
+                    //double dx = x * z / (double)(w - 1);
+                    double dx = x / (double)(ws - 1);
+                    var clr = GetColor(dx, dy);
+                    //var br = new SolidBrush();
+                    b.SetPixel(x, y, clr);
+                    //g.FillRectangle(br, x * z, y * z, z, z);
                 }
             }
-            g.Flush();
+            //g.Flush();
             return b;
 
             /*
