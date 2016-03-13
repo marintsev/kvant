@@ -80,7 +80,7 @@ namespace Rects
             {
                 for (int x = 0; x < ws; x++)
                 {
-                    var up = new Pointu(x, y, 1);
+                    var up = new Pointu(x*z, y*z, 1);
                     var p = up.Multiply(m).ToPoint();
                     var clr = GetColor(p.x, p.y);
                     b.SetPixel(x, y, clr);

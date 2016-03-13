@@ -66,8 +66,6 @@ namespace Rects
 
         public override bool Trace(ref Ray ray)
         {
-            /*double x = (Math.Sin(ray.x*Math.PI)+1)/2;
-            double y = (Math.Cos(ray.y*Math.PI)+1)/2;*/
             double x = Magic((ray.x-cx)/w);
             double y = Magic((ray.y-cy)/h);
             x = Clamp(x, 0, 1);

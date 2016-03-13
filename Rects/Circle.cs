@@ -24,6 +24,10 @@ namespace Rects
 
         public bool IsInside(double x, double y)
         {
+            /*if (!(x >= cx - r && x <= cx + r))
+                return false;
+            if (!(y >= cy - r && y <= cy + r))
+                return false;*/
             double dx = x - cx;
             double dy = y - cy;
             return dx * dx + dy * dy <= r * r;

@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 
 namespace Rects
 {
-    public class Pointu
+    public struct Pointu
     {
         double x, y, t;
-        public Pointu(double x_, double y_, double t_)
+        public Pointu(double x_, double y_, double t_ = 1.0)
         {
             x = x_;
             y = y_;
             t = t_;
         }
 
-        public Pointu Multiply( Matrix33 m )
+        public Pointu Multiply(Matrix33 m)
         {
             return new Pointu(
                 m.m[0] * x + m.m[1] * y + m.m[2] * t,
@@ -25,9 +25,19 @@ namespace Rects
                 );
         }
 
+        public static Pointu operator *(Pointu p, Matrix33 m)
+        {
+            return p.Multiply(m);
+        }
+
         public Point ToPoint()
         {
             return new Point(x / t, y / t);
+        }
+
+        public override string ToString()
+        {
+            return string.Format("[{0},{1},{2}]", x,y,t);
         }
     }
 }
