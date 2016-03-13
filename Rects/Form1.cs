@@ -31,7 +31,7 @@ namespace Rects
         private Scene scene = new Scene();
 
         private Point center = new Point(0.5, 0.5);
-        private Point mouse = new Point(0.5,0.5);
+        private Point mouse = new Point(0.5, 0.5);
         private double scale = 256;
 
         private Matrix33 mProject = Matrix33.Identity();
@@ -138,7 +138,7 @@ namespace Rects
 
         private void Form1_Resize(object sender, EventArgs e)
         {
-            Text = string.Format("{0} {1}", Width, Height);
+            //Text = string.Format("{0} {1}", Width, Height);
             Redraw();
         }
 
@@ -154,15 +154,40 @@ namespace Rects
             }
         }
 
+        private void AddRect(double x, double y, double w, double h, double l, Color color)
+        {
+            color = Color.FromArgb(127, 255, 255, 255);
+            /*scene.Add(new RTRectangle(x - l / 2, y, l, h, color));
+            scene.Add(new RTRectangle(x + w - l / 2, y, l, h, color));
+            scene.Add(new RTRectangle(x, y - l / 2, w, l, color));
+            scene.Add(new RTRectangle(x, y + h - l / 2, w, l, color));*/
+
+            scene.Add(new RTRectangle(x, y, l, h, color));
+            scene.Add(new RTRectangle(x + w-l, y, l, h, color));
+            scene.Add(new RTRectangle(x, y, w, l, color));
+            scene.Add(new RTRectangle(x, y + h-l, w, l, color));
+        }
+
+        private void AddCircles(double x, double y, double w, double h, Color circ_col, double cr, double sh)
+        {
+            scene.Add(new RaytraceableCircle(new Circle(x + sh, y + sh, cr, circ_col)));
+            scene.Add(new RaytraceableCircle(new Circle(x + w - sh, y + sh, cr, circ_col)));
+            scene.Add(new RaytraceableCircle(new Circle(x + w - sh, y + h - sh, cr, circ_col)));
+            scene.Add(new RaytraceableCircle(new Circle(x + sh, y + h - sh, cr, circ_col)));
+        }
+
         private void AddRectangle(double x, double y, double w, double h, Color color)
         {
             var r = new RTRectangle(x, y, w, h, color);
             scene.Add(r);
-            double cr = 0.01;
-            scene.Add(new RaytraceableCircle(new Circle(x, y, cr, Color.White)));
-            scene.Add(new RaytraceableCircle(new Circle(x + w, y, cr, Color.White)));
-            scene.Add(new RaytraceableCircle(new Circle(x + w, y + h, cr, Color.White)));
-            scene.Add(new RaytraceableCircle(new Circle(x, y + h, cr, Color.White)));
+            double l = 0.01;
+
+            double cr = l;
+            Color circ_col = Color.FromArgb(127, 255, 255, 255);
+
+            AddRect(x, y, w, h, l * 0.5, color);
+            AddCircles(x, y, w, h, circ_col, cr, l/6);
+
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -170,20 +195,15 @@ namespace Rects
             var r = new Random();
             scene.Add(new RaytraceableGradient(0.5, 0.5, 0.5, 0.5));
 
-
-
-            //scene.Add(new RaytraceableCircle(new Circle(0.25, 0.75, 0.33, Color.FromArgb(127, 0, 255, 0))));
-            //scene.Add(new RaytraceableCircle(new Circle(0.75, 0.75, 0.33, Color.FromArgb(127, 255, 0, 0))));
-
             for (int i = 0; i < 50; i++)
             {
-                /*var c = new Circle(r.NextDouble(), r.NextDouble(),
+                var c = new Circle(r.NextDouble(), r.NextDouble(),
                     r.NextDouble() * 0.1, Color.FromArgb(
                     //255,
                     r.Next(256),
                     r.Next(256), r.Next(256), r.Next(256)
                     ));
-                scene.Add(new RaytraceableCircle(c));*/
+                scene.Add(new RaytraceableCircle(c));
                 AddRectangle(r.NextDouble(), r.NextDouble(),
                     r.NextDouble() * 0.2, r.NextDouble() * 0.2,
                     Color.FromArgb(

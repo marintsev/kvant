@@ -44,14 +44,7 @@ namespace Rects
             return r;
         }
 
-        public static double Clamp(double x, double min, double max)
-        {
-            if (x < min)
-                return min;
-            if (x > max)
-                return max;
-            return x;
-        }
+       
 
         public static double Magic( double x)
         {
@@ -68,8 +61,8 @@ namespace Rects
         {
             double x = Magic((ray.x-cx)/w);
             double y = Magic((ray.y-cy)/h);
-            x = Clamp(x, 0, 1);
-            y = Clamp(y, 0, 1);
+            x = x.Clamp(0, 1);
+            y = y.Clamp(0, 1);
             ray.add = Color.FromArgb((int)(x * 255.0), 0, (int)(y * 255.0));
             return true;
         }

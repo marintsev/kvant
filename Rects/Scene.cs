@@ -103,12 +103,13 @@ namespace Rects
             ray.c = Color.Transparent;
 
             for (int i = objects.Count - 1; i >= 0; i--)
+            //for (int i = 0; i < objects.Count;i++ )
             {
                 var o = objects[i];
                 if (o.Trace(ref ray))
                 {
                     double f = ray.c.A / 255.0;
-                    ray.c = ColorUtils.Blend(ray.c, ray.add, f, 1 - f);
+                    ray.c = ColorUtils.Blend(ray.c, ray.add, f, 1-f, f);
                     if (ray.c.A == 255)
                     {
                         ray.stop = true;
