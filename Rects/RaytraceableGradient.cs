@@ -9,14 +9,70 @@ namespace Rects
 {
     public class RaytraceableGradient : Raytraceable
     {
+        double w, h;
+        double cx, cy;
 
-        public RaytraceableGradient()
+        public RaytraceableGradient(double cx_, double cy_, double w_=1, double h_=1)
         {
-
+            cx = cx_;
+            cy = cy_;
+            w = w_;
+            h = h_;
         }
+
+        public static double Mod( double x, double y )
+        {
+            double r;
+            if( x < 0 )
+                r = x - (int)(x / y) * y;
+            else
+                r = x - (int)(x / y)*y;
+            if (r < 0)
+                r += y;
+            return r;
+        }
+
+        public static double Mod2(double x, double y)
+        {
+            double r;
+            if (x < 0)
+                r = x - (int)(x / y);
+            else
+                r = x - (int)(x / y);
+            if (r < 0)
+                r += y;
+            return r;
+        }
+
+        public static double Clamp(double x, double min, double max)
+        {
+            if (x < min)
+                return min;
+            if (x > max)
+                return max;
+            return x;
+        }
+
+        public static double Magic( double x)
+        {
+            x = Math.Abs(x);
+            var i = (int)x;
+            var y = x - i;
+            if( i % 2 == 0)
+                return y;
+            else
+                return 1 - y;
+        }
+
         public override bool Trace(ref Ray ray)
         {
-            ray.add = Color.FromArgb((int)(ray.x * 255.0), 0, (int)(ray.y * 255.0));
+            /*double x = (Math.Sin(ray.x*Math.PI)+1)/2;
+            double y = (Math.Cos(ray.y*Math.PI)+1)/2;*/
+            double x = Magic((ray.x-cx)/w);
+            double y = Magic((ray.y-cy)/h);
+            x = Clamp(x, 0, 1);
+            y = Clamp(y, 0, 1);
+            ray.add = Color.FromArgb((int)(x * 255.0), 0, (int)(y * 255.0));
             return true;
         }
     }

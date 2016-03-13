@@ -8,7 +8,7 @@ namespace Rects
 {
     public class Point
     {
-        double x, y;
+        public double x, y;
 
         public Point(double x_, double y_)
         {

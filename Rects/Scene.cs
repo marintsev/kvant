@@ -9,7 +9,7 @@ namespace Rects
 {
     public class Scene
     {
-        
+
 
         private List<Raytraceable> objects = null;
 
@@ -23,7 +23,31 @@ namespace Rects
             objects.Add(o);
         }
 
-        public Bitmap Draw(int w, int h, int z)
+        public Bitmap DrawSubpixel(Matrix33 m, int w, int h)
+        {
+            var b = new Bitmap(w, h);
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    var p1 = new Pointu(x + 0.25, y + 0.25, 1).Multiply(m).ToPoint();
+                    var p2 = new Pointu(x + 0.25, y + 0.75, 1).Multiply(m).ToPoint();
+                    var p3 = new Pointu(x + 0.75, y + 0.25, 1).Multiply(m).ToPoint();
+                    var p4 = new Pointu(x + 0.75, y + 0.75, 1).Multiply(m).ToPoint();
+                    var c1 = GetColor(p1);
+                    var c2 = GetColor(p2);
+                    var c3 = GetColor(p3);
+                    var c4 = GetColor(p4);
+                    var c12 = ColorUtils.Blend(c1, c2, 0.5, 0.5);
+                    var c34 = ColorUtils.Blend(c3, c4, 0.5, 0.5);
+                    var c1234 = ColorUtils.Blend(c12, c34, 0.5, 0.5);
+                    b.SetPixel(x, y, c1234);
+                }
+            }
+            return b;
+        }
+
+        public Bitmap Draw(Matrix33 m, int w, int h, int z)
         {
             // Примерная зависимость:
             //  z   время в мс
@@ -43,7 +67,10 @@ namespace Rects
             //Draw(2): 2541 ms
             //Draw(1): 10010 ms
 
-            // TODO: субпиксельная точность
+            if (z == 0)
+            {
+                return DrawSubpixel(m, w, h);
+            }
 
             var hs = h / z;
             var ws = w / z;
@@ -51,15 +78,20 @@ namespace Rects
             var b = new Bitmap(ws, hs);
             for (int y = 0; y < hs; y++)
             {
-                double dy = y / (double)(hs - 1);
                 for (int x = 0; x < ws; x++)
                 {
-                    double dx = x / (double)(ws - 1);
-                    var clr = GetColor(dx, dy);
+                    var up = new Pointu(x, y, 1);
+                    var p = up.Multiply(m).ToPoint();
+                    var clr = GetColor(p.x, p.y);
                     b.SetPixel(x, y, clr);
                 }
             }
             return b;
+        }
+
+        public Color GetColor(Point p)
+        {
+            return GetColor(p.x, p.y);
         }
 
         public Color GetColor(double x, double y)
@@ -75,9 +107,9 @@ namespace Rects
                 var o = objects[i];
                 if (o.Trace(ref ray))
                 {
-                    double f = ray.c.A/255.0;
-                    ray.c = ColorUtils.Blend( ray.c, ray.add, f, 1-f );
-                    if( ray.c.A == 255 )
+                    double f = ray.c.A / 255.0;
+                    ray.c = ColorUtils.Blend(ray.c, ray.add, f, 1 - f);
+                    if (ray.c.A == 255)
                     {
                         ray.stop = true;
                         return ray.c;

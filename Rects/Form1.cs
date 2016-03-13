@@ -38,6 +38,27 @@ namespace Rects
 
         private delegate Color Raytracer(double x, double y);
 
+        private Matrix33 GetMatrix( int width, int height, int iz )
+        {        
+            double z;
+            if (iz == 0)
+                z = 1;
+            else
+                z = iz;
+
+            var mi = Matrix33.Identity();
+            //var ms1 = Matrix33.Scale(width/(double)height, 1);
+            var mt1 = Matrix33.Translate(0.5, 0.5);
+            var mt2 = Matrix33.Translate(-0.5, -0.5);
+
+            var ms3 = Matrix33.Scale(1.0 / 256, 1.0 / 256);
+            var ms2 = Matrix33.Scale(z, z);
+
+            var m = mt1 * mi /** mt2*/;
+
+            var mr = m * ms3 * Matrix33.Translate(-width / 2, -height / 2) * ms2;
+            return mr;
+        }
         private void Redraw(int width, int height)
         {
             if (t != null)
@@ -47,12 +68,11 @@ namespace Rects
             {
                 int green = new Random().Next(256);
 
-                
-                for (int z = 64; z >= 1; z /= 2)
+                for (int z = 64; z >= 0; z /= 2)
                 {
                     var sw = new Stopwatch();
-                    sw.Start();     
-                    var b = scene.Draw(width, height, z);
+                    sw.Start();
+                    var b = scene.Draw(GetMatrix(width,height,z), width, height, z);
                     sw.Stop();
                     Debug.WriteLine("Draw({0}): {1} ms", z, sw.ElapsedMilliseconds);
                     lock (painting)
@@ -60,9 +80,10 @@ namespace Rects
                         background = b;
                     }
                     Invalidate();
-                    
+                    if (z == 0)
+                        break;
                 }
-                
+
             });
             t.Start();
         }
@@ -100,19 +121,19 @@ namespace Rects
         private void Form1_Load(object sender, EventArgs e)
         {
             var r = new Random();
-            scene.Add(new RaytraceableGradient());
+            scene.Add(new RaytraceableGradient(0.5,0.5,0.5,0.5));
 
-            
+
 
             //scene.Add(new RaytraceableCircle(new Circle(0.25, 0.75, 0.33, Color.FromArgb(127, 0, 255, 0))));
             //scene.Add(new RaytraceableCircle(new Circle(0.75, 0.75, 0.33, Color.FromArgb(127, 255, 0, 0))));
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 50; i++)
             {
                 var c = new Circle(r.NextDouble(), r.NextDouble(),
                     r.NextDouble() * 0.1, Color.FromArgb(
-                    255,
-                    //r.Next(256),
+                    //255,
+                    r.Next(256),
                     r.Next(256), r.Next(256), r.Next(256)
                     ));
                 scene.Add(new RaytraceableCircle(c));
@@ -128,4 +149,6 @@ namespace Rects
                 Close();
         }
     }
+
+
 }
