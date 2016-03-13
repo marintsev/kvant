@@ -105,7 +105,7 @@ namespace Rects
                     var m = ConvertMatrix(Coords.Client, Coords.Model); //GetMatrix(width, height, z);
                     var b = scene.Draw(m, width, height, z);
                     sw.Stop();
-                    //Debug.WriteLine("Draw({0}): {1} ms", z, sw.ElapsedMilliseconds);
+                    Debug.WriteLine("Draw({0}): {1} ms", z, sw.ElapsedMilliseconds);
                     lock (painting)
                     {
                         background = b;
@@ -194,20 +194,20 @@ namespace Rects
         {
             var r = new Random();
             scene.Add(new RaytraceableGradient(0.5, 0.5, 0.5, 0.5));
-
             for (int i = 0; i < 50; i++)
             {
-                var c = new Circle(r.NextDouble(), r.NextDouble(),
+                /*var c = new Circle(r.NextDouble(), r.NextDouble(),
                     r.NextDouble() * 0.1, Color.FromArgb(
                     //255,
                     r.Next(256),
                     r.Next(256), r.Next(256), r.Next(256)
                     ));
-                scene.Add(new RaytraceableCircle(c));
+                scene.Add(new RaytraceableCircle(c));*/
                 AddRectangle(r.NextDouble(), r.NextDouble(),
                     r.NextDouble() * 0.2, r.NextDouble() * 0.2,
                     Color.FromArgb(
                     r.Next(256),
+                    //255,
                     r.Next(256), r.Next(256), r.Next(256)
                     ));
             }

@@ -9,13 +9,13 @@ namespace Rects
 {
     public class Scene
     {
-
-
         private List<Raytraceable> objects = null;
+        int accuracy;
 
-        public Scene()
+        public Scene( int accuracy_ = 1 )
         {
             objects = new List<Raytraceable>();
+            accuracy = accuracy_;
         }
 
         public void Add(Raytraceable o)
@@ -80,7 +80,7 @@ namespace Rects
             {
                 for (int x = 0; x < ws; x++)
                 {
-                    var up = new Pointu(x*z, y*z, 1);
+                    var up = new Pointu(x * z, y * z, 1);
                     var p = up.Multiply(m).ToPoint();
                     var clr = GetColor(p.x, p.y);
                     b.SetPixel(x, y, clr);
@@ -103,14 +103,12 @@ namespace Rects
             ray.c = Color.Transparent;
 
             for (int i = objects.Count - 1; i >= 0; i--)
-            //for (int i = 0; i < objects.Count;i++ )
             {
                 var o = objects[i];
                 if (o.Trace(ref ray))
                 {
-                    double f = ray.c.A / 255.0;
-                    ray.c = ColorUtils.Blend(ray.c, ray.add, f, 1-f, f);
-                    if (ray.c.A == 255)
+                    ray.c = ColorUtils.Blend(ray.c, ray.add);
+                    if (255-ray.c.A < accuracy)
                     {
                         ray.stop = true;
                         return ray.c;
