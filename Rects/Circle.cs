@@ -22,6 +22,12 @@ namespace Rects
             color = color_;
         }
 
+        public Point GetPoint(double angle)
+        {
+            return new Point(cx + Math.Cos(angle) * r,
+                cy + Math.Sin(angle) * r);
+        }
+
         public bool IsInside(double x, double y)
         {
             /*if (!(x >= cx - r && x <= cx + r))

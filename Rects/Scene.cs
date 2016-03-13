@@ -9,18 +9,22 @@ namespace Rects
 {
     public class Scene
     {
-        private List<Raytraceable> objects = null;
-        int accuracy;
+        //private List<Raytraceable> objects = null;
+        private int accuracy;
+        private QuadTree quadtree;
 
-        public Scene( int accuracy_ = 1 )
+        public Scene(int accuracy_ = 1)
         {
-            objects = new List<Raytraceable>();
+            //objects = new List<Raytraceable>();
             accuracy = accuracy_;
+
+            quadtree = new QuadTree(new BBox(0, 1, 1, 0));
         }
 
         public void Add(Raytraceable o)
         {
-            objects.Add(o);
+            quadtree.Add(o);
+            //objects.Add(o);
         }
 
         public Bitmap DrawSubpixel(Matrix33 m, int w, int h)
@@ -96,24 +100,33 @@ namespace Rects
 
         public Color GetColor(double x, double y)
         {
-            Raytraceable.Ray ray = new Raytraceable.Ray();
+            /*var ray = new QuadTree.Ray();
             ray.stop = false;
             ray.x = x;
             ray.y = y;
-            ray.c = Color.Transparent;
+            ray.path = null;
+            ray.obj = null;
+            ray.c = Color.Transparent;*/
 
-            for (int i = objects.Count - 1; i >= 0; i--)
+            var objs = new List<Raytraceable>();
+            quadtree.Trace(ref objs, new Point(x, y));
+            var ray = new Raytraceable.Ray();
+            ray.x = x;
+            ray.y = y;
+            ray.stop = false;
+            ray.c = Color.Transparent;
+            //for (int i = 0; i < objs.Count - 1; i++)
+            for( int i=objs.Count-1; i>=0; i-- )
             {
-                var o = objects[i];
-                if (o.Trace(ref ray))
+                var obj = objs[i];
+                if (obj.Trace(ref ray))
                 {
                     ray.c = ColorUtils.Blend(ray.c, ray.add);
-                    if (255-ray.c.A < accuracy)
-                    {
+                    if (255 - ray.c.A < accuracy)
                         ray.stop = true;
-                        return ray.c;
-                    }
                 }
+                if (ray.stop)
+                    return ray.c;
             }
             return ray.c;
         }

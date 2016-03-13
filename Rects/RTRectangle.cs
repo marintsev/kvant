@@ -21,6 +21,7 @@ namespace Rects
             color = color_;
         }
 
+
         public override bool Trace(ref Raytraceable.Ray ray)
         {
             if (ray.x >= x && ray.x <= x + w && ray.y >= y && ray.y <= y + h)
@@ -29,6 +30,22 @@ namespace Rects
                 return true;
             }
             return false;
+        }
+
+        public override bool IsInsideOf(BBox bbox)
+        {
+            return bbox.IsInside(new Point(x, y)) &&
+                bbox.IsInside(new Point(x + w, y)) &&
+                bbox.IsInside(new Point(x + w, y + h)) &&
+                bbox.IsInside(new Point(x, y + h));
+        }
+
+        public override bool IsCross(BBox bbox)
+        {
+            return bbox.IsInside(new Point(x, y)) ||
+                bbox.IsInside(new Point(x + w, y)) ||
+                bbox.IsInside(new Point(x + w, y + h)) ||
+                bbox.IsInside(new Point(x, y + h));
         }
     }
 }

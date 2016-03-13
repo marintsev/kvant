@@ -22,6 +22,8 @@ namespace Rects
         /// <param name="ray"></param>
         /// <returns>true, если луч попал в объект.</returns>
         public abstract bool Trace(ref Ray ray);
+        public abstract bool IsInsideOf(BBox bbox);
+        public abstract bool IsCross(BBox bbox);
 
         
     }

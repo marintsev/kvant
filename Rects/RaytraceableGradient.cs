@@ -66,5 +66,15 @@ namespace Rects
             ray.add = Color.FromArgb((int)(x * 255.0), 0, (int)(y * 255.0));
             return true;
         }
+
+        public override bool IsInsideOf(BBox bbox)
+        {
+            return false;
+        }
+
+        public override bool IsCross(BBox bbox)
+        {
+            return true;
+        }
     }
 }

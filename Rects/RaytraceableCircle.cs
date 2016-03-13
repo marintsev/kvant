@@ -23,7 +23,23 @@ namespace Rects
             }
             return false;
         }
+
+        public override bool IsInsideOf(BBox bbox)
+        {
+            return bbox.IsInside(circ.GetPoint(0)) &&
+                bbox.IsInside(circ.GetPoint(Math.PI * 0.5)) &&
+                bbox.IsInside(circ.GetPoint(Math.PI)) &&
+                bbox.IsInside(circ.GetPoint(Math.PI * 1.5));
+        }
+
+        public override bool IsCross(BBox bbox)
+        {
+            return bbox.IsInside(circ.GetPoint(0)) ||
+                bbox.IsInside(circ.GetPoint(Math.PI * 0.5)) ||
+                bbox.IsInside(circ.GetPoint(Math.PI)) ||
+                bbox.IsInside(circ.GetPoint(Math.PI * 1.5));
+        }
     }
 
-    
+
 }
