@@ -24,7 +24,9 @@ namespace Rects
 
         public bool IsInside(double x, double y)
         {
-            return (x - cx).Sqr() + (y - cy).Sqr() < r.Sqr();
+            double dx = x - cx;
+            double dy = y - cy;
+            return dx * dx + dy * dy <= r * r;
         }
     }
 }

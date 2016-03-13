@@ -9,6 +9,8 @@ namespace Rects
 {
     public class Scene
     {
+        
+
         private List<Raytraceable> objects = null;
 
         public Scene()
@@ -62,31 +64,27 @@ namespace Rects
 
         public Color GetColor(double x, double y)
         {
-            Ray ray = new Ray();
+            Raytraceable.Ray ray = new Raytraceable.Ray();
             ray.stop = false;
             ray.x = x;
             ray.y = y;
             ray.c = Color.Transparent;
-
-            //for (int i = 0; i < objects.Count; i++)
 
             for (int i = objects.Count - 1; i >= 0; i--)
             {
                 var o = objects[i];
                 if (o.Trace(ref ray))
                 {
-                    if( ray.stop )
+                    double f = ray.c.A/255.0;
+                    ray.c = ColorUtils.Blend( ray.c, ray.add, f, 1-f );
+                    if( ray.c.A == 255 )
+                    {
+                        ray.stop = true;
                         return ray.c;
+                    }
                 }
             }
             return ray.c;
         }
-    }
-
-    public struct Ray
-    {
-        public double x, y;
-        public Color c;
-        public bool stop;
     }
 }

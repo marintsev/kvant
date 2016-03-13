@@ -18,10 +18,7 @@ namespace Rects
         {
             if (circ.IsInside(ray.x, ray.y))
             {
-                double f = circ.Color.A / 255.0;
-                double g = ray.c.A / 255.0;
-                ray.c = ColorUtils.Blend(ray.c, circ.Color, g, 1-g);
-                ray.stop = circ.Color.A == 255;
+                ray.add = circ.Color;
                 return true;
             }
             return false;

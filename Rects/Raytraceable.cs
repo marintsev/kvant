@@ -9,6 +9,13 @@ namespace Rects
 {
     public abstract class Raytraceable
     {
+        public struct Ray
+        {
+            public double x, y;
+            public Color c;
+            public Color add;
+            public bool stop;
+        }
         /// <summary>
         /// 
         /// </summary>
