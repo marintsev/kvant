@@ -69,10 +69,12 @@ namespace Rects
                 bb.IsInside(RightTop) ||
                 bb.IsInside(LeftBottom) ||
                 bb.IsInside(RightBottom) ||
+                bb.IsInside(new Point(CenterX, CenterY)) ||
                 IsInside(bb.LeftTop) ||
                 IsInside(bb.RightTop) ||
                 IsInside(bb.LeftBottom) ||
-                IsInside(bb.RightBottom);
+                IsInside(bb.RightBottom) ||
+                IsInside(new Point(bb.CenterX, bb.CenterY));
         }
     }
 }

@@ -17,6 +17,7 @@ namespace Rects
             public bool stop;
         }
         public int Z { get; set; }
+        public int Tag { get; set; }
         /// <summary>
         /// 
         /// </summary>

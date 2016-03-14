@@ -107,53 +107,55 @@ namespace Rects
         public const int Culled = 0;
         private const int AddedInside = 1;
         private const int AddedIntersect = 2;
-        public int Add(Raytraceable o, bool res = false)
+
+        public int AddInside(Raytraceable o)
         {
-            if (o.IsInsideOf(bbox))
+            for (int i = 0; i < 4; i++)
             {
-                bool stop = false;
-                for (int i = 0; i < 4; i++)
+                var sub = PeekSubtree(i);
+                if (o.IsInsideOf(sub.bbox))
                 {
-                    var sub = PeekSubtree(i);
-                    if (o.IsInsideOf(sub.bbox))
-                    {
-                        sub.Add(o, true);
-                        stop = true;
-                        break;
-                    }
-                }
-                // Не помещается ни в одной из четвертей, добавляем.
-                if (!stop)
-                {
-                    AddToList(ref objects, o);
+                    var code = sub.AddInside(o);
+                    // Поместился целиком в одной из четвертей.
                     return AddedInside;
                 }
-                // Поместился целиком в одной из четвертей.
-                return AddedInside;
             }
-            else if (!res && o.IsCross(bbox))
+            // Не помещается ни в одной из четвертей, добавляем.
+            AddToList(ref objects, o);
+            return AddedInside;
+        }
+
+        public int Add(Raytraceable o, bool res = false)
+        {
+            // Если лежит целиком, то добавляем в наименьшую четверть, куда помещается объект
+            if (o.IsInsideOf(bbox))
             {
+                return AddInside(o);
+            }
+            // Если пересекает
+            else if (o.IsCross(bbox))
+            {
+                // то добавляем
                 AddToList(ref objects, o);
                 return AddedIntersect;
             }
             else
             {
                 // Лежит целиком за пределами
-                //throw new NotImplementedException();
                 return Culled;
             }
         }
 
         public static bool IsInside(QuadTree qt, Point p)
         {
-            if (qt == null || qt.objects == null)
+            if (qt == null)
                 return false;
             return qt.bbox.IsInside(p);
         }
 
         public static bool IsInside(QuadTree qt, BBox bb)
         {
-            if (qt == null || qt.objects == null)
+            if (qt == null)
                 return false;
             return qt.bbox.Intersects(bb);
         }
@@ -205,21 +207,36 @@ namespace Rects
 
             yield break;
         }
-        public void Trace(ref List<Raytraceable> list, Point p)
+
+        public void TraceAll(List<Raytraceable> list, Point p)
+        {
+            if (objects != null)
+                list.AddRange(objects);
+
+            if (a != null)
+                a.Trace(list, p);
+            if (b != null)
+                b.Trace(list, p);
+            if (c != null)
+                c.Trace(list, p);
+            if (d != null)
+                d.Trace(list, p);
+        }
+
+        public void Trace(List<Raytraceable> list, Point p)
         {
             if (objects != null)
                 if (parent == null || bbox.IsInside(p))
                     list.AddRange(objects);
 
             if (IsInside(a, p))
-                a.Trace(ref list, p);
+                a.Trace(list, p);
             else if (IsInside(b, p))
-                b.Trace(ref list, p);
+                b.Trace(list, p);
             else if (IsInside(c, p))
-                c.Trace(ref list, p);
+                c.Trace(list, p);
             else if (IsInside(d, p))
-                d.Trace(ref list, p);
-
+                d.Trace(list, p);
         }
 
         [Obsolete()]

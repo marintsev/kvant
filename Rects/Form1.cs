@@ -99,6 +99,7 @@ namespace Rects
                 int green = new Random().Next(256);
 
                 var m = ConvertMatrix(Coords.Client, Coords.Model);
+                //var qt = scene.QuadTree;
                 var qt = scene.CreateTree(m, width, height);
 
                 for (int z = 64; z >= 0; z /= 2)
@@ -165,9 +166,9 @@ namespace Rects
             scene.Add(new RTRectangle(x, y + h - l / 2, w, l, color));*/
 
             scene.Add(new RTRectangle(x, y, l, h, color));
-            scene.Add(new RTRectangle(x + w-l, y, l, h, color));
+            scene.Add(new RTRectangle(x + w - l, y, l, h, color));
             scene.Add(new RTRectangle(x, y, w, l, color));
-            scene.Add(new RTRectangle(x, y + h-l, w, l, color));
+            scene.Add(new RTRectangle(x, y + h - l, w, l, color));
         }
 
         private void AddCircles(double x, double y, double w, double h, Color circ_col, double cr, double sh)
@@ -188,7 +189,7 @@ namespace Rects
             Color circ_col = Color.FromArgb(127, 255, 255, 255);
 
             AddRect(x, y, w, h, l * 0.5, color);
-            AddCircles(x, y, w, h, circ_col, cr, l/6);
+            AddCircles(x, y, w, h, circ_col, cr, l / 6);
 
         }
 
@@ -213,7 +214,7 @@ namespace Rects
                     r.Next(256), r.Next(256), r.Next(256)
                     ));
             }
-         
+
             UpdateProject();
             Redraw();
         }
@@ -228,9 +229,7 @@ namespace Rects
                 Close();
         }
 
-        private void Form1_MouseDown(object sender, MouseEventArgs e)
-        {
-        }
+
 
         public enum Coords
         {
@@ -295,6 +294,13 @@ namespace Rects
             return (what.ToPointu() * m).ToPoint();
         }
 
+        private Point pMouseHold = Point.Invalid;
+
+        private void Form1_MouseDown(object sender, MouseEventArgs e)
+        {
+            pMouseHold = Convert(new Point(e.X, e.Y), Coords.Window, Coords.Model);
+        }
+
         private void Form1_MouseMove(object sender, MouseEventArgs e)
         {
             //this.Boun
@@ -303,8 +309,28 @@ namespace Rects
             var pp = Convert(pu.ToPoint(), Coords.Window, Coords.Model);
             var pc = Convert(pu.ToPoint(), Coords.Window, Coords.Uniform);
             var p = pu.ToPoint();
-            Text = string.Format(" Objects: {0}/{1}, {2}", scene.QuadTree.Count, scene.Objects, pp);
+            Text = string.Format(" Objects: {0}:{1}/{2}, {3}", scene.QuadTree.Count, scene.QuadTree.TotalCount, scene.Objects, pp);
+
+            if (!pMouseHold.IsInvalid())
+            {
+                var new_center = pMouseHold;
+                var new_mouse = Convert(new Point(e.X, e.Y), Coords.Window, Coords.Uniform);
+                Debug.WriteLine("New center: {0}", new_center);
+                Debug.WriteLine("New mouse: {0}", new_mouse);
+                lock (painting)
+                {
+                    center = new_center;
+                    mouse = new_mouse;
+                }
+                Redraw();
+            }
+
             //Text = string.Format("{0} -> {1}, {2}", p, pp, pc);
+        }
+
+        private void Form1_MouseUp(object sender, MouseEventArgs e)
+        {
+            pMouseHold = Point.Invalid;
         }
 
         private void Form1_MouseWheel(object sender, MouseEventArgs e)
@@ -332,6 +358,8 @@ namespace Rects
             }
             Redraw();
         }
+
+
     }
 
 

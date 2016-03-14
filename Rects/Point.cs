@@ -9,6 +9,11 @@ namespace Rects
     public struct Point
     {
         public double x, y;
+        public static Point Invalid = new Point(double.NaN, double.NaN);
+        public bool IsInvalid()
+        {
+            return double.IsNaN(x) || double.IsNaN(y);
+        }
 
         public Point(double x_, double y_)
         {

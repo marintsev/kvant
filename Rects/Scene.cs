@@ -37,8 +37,8 @@ namespace Rects
         public void Add(Raytraceable o)
         {
             o.Z = curz++;
-            quadtree.Add(o);
             objects.Add(o);
+            quadtree.Add(o);
         }
 
         public Bitmap DrawSubpixel(QuadTree qt, Matrix33 m, int w, int h)
@@ -87,29 +87,8 @@ namespace Rects
 
         public Bitmap Draw(QuadTree qt, Matrix33 m, int w, int h, int z)
         {
-            // Примерная зависимость:
-            //  z   время в мс
-            //  64	4
-            //  32	3
-            //  16	9
-            //  8	20
-            //  4	73
-            //  2	299
-            //  1	1108
-
-            //Draw(64): 13 ms
-            //Draw(32): 27 ms
-            //Draw(16): 60 ms
-            //Draw(8): 176 ms
-            //Draw(4): 633 ms
-            //Draw(2): 2541 ms
-            //Draw(1): 10010 ms
-
-
             if (z == 0)
-            {
                 return DrawSubpixel(qt, m, w, h);
-            }
 
             var hs = h / z;
             var ws = w / z;
@@ -147,7 +126,7 @@ namespace Rects
             ray.c = Color.Transparent;
 
             list.Clear();
-            qt.Trace(ref list, new Point(x, y));
+            qt.Trace(list, new Point(x, y));
             try
             {
                 list.Sort(rt_comparer);
@@ -157,16 +136,6 @@ namespace Rects
                 throw ioe.GetBaseException();
             }
 
-            /*int c = list.Count()*2;
-            if (c > 255)
-                c = 255;
-            ray.c = Color.FromArgb(255, 0, c, 0);
-            return ray.c;*/
-
-            /*var list = new SortedList<int, Raytraceable>(int_comparer);
-            qt.Trace(ref list, new Point(x, y));*/
-
-            //foreach (var obj in qt.Tracer(new Point(x, y))/*.OrderByDescending(s => s.Z)*/)
             foreach (var obj in list)
             {
                 if (obj.Trace(ref ray))
