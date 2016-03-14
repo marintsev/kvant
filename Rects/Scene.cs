@@ -134,9 +134,9 @@ namespace Rects
             return GetColor(list, qt, p.x, p.y);
         }
 
-        /*private IComparer<int> int_comparer = Comparer<int>.Create((_x, _y) => _y - _x);
+        //private IComparer<int> int_comparer = Comparer<int>.Create((_x, _y) => _y - _x);
         private IComparer<Raytraceable> rt_comparer = Comparer<Raytraceable>.Create((_x, _y) => _y.Z - _x.Z);
-        private Comparison<Raytraceable> rtf_comparer = (_x, _y) => { return _y.Z - _x.Z; };*/
+        private Comparison<Raytraceable> rtf_comparer = (_x, _y) => { return _y.Z - _x.Z; };
 
         public Color GetColor(List<Raytraceable> list, QuadTree qt, double x, double y)
         {
@@ -146,7 +146,7 @@ namespace Rects
             ray.stop = false;
             ray.c = Color.Transparent;
 
-            /*list.Clear();
+            list.Clear();
             qt.Trace(ref list, new Point(x, y));
             try
             {
@@ -155,13 +155,19 @@ namespace Rects
             catch (InvalidOperationException ioe)
             {
                 throw ioe.GetBaseException();
-            }*/
+            }
+
+            /*int c = list.Count()*2;
+            if (c > 255)
+                c = 255;
+            ray.c = Color.FromArgb(255, 0, c, 0);
+            return ray.c;*/
 
             /*var list = new SortedList<int, Raytraceable>(int_comparer);
             qt.Trace(ref list, new Point(x, y));*/
 
-            foreach (var obj in qt.Tracer(new Point(x, y)).OrderByDescending(s => s.Z))
-            //foreach (var obj in list.Values)
+            //foreach (var obj in qt.Tracer(new Point(x, y))/*.OrderByDescending(s => s.Z)*/)
+            foreach (var obj in list)
             {
                 if (obj.Trace(ref ray))
                 {

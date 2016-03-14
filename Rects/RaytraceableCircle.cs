@@ -44,6 +44,7 @@ namespace Rects
                 circ.IsInside(new Point(bbox.Left, bbox.Bottom)) ||
                 circ.IsInside(new Point(bbox.Right, bbox.Bottom))
                 );
+            // TODO: пересечение с гранью
         }
     }
 

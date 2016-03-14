@@ -107,9 +107,8 @@ namespace Rects
         public const int Culled = 0;
         private const int AddedInside = 1;
         private const int AddedIntersect = 2;
-        public int Add(Raytraceable o)
+        public int Add(Raytraceable o, bool res = false)
         {
-            bool added;
             if (o.IsInsideOf(bbox))
             {
                 bool stop = false;
@@ -118,7 +117,7 @@ namespace Rects
                     var sub = PeekSubtree(i);
                     if (o.IsInsideOf(sub.bbox))
                     {
-                        sub.Add(o);
+                        sub.Add(o, true);
                         stop = true;
                         break;
                     }
@@ -132,7 +131,7 @@ namespace Rects
                 // Поместился целиком в одной из четвертей.
                 return AddedInside;
             }
-            else if (o.IsCross(bbox))
+            else if (!res && o.IsCross(bbox))
             {
                 AddToList(ref objects, o);
                 return AddedIntersect;
@@ -154,7 +153,7 @@ namespace Rects
 
         public static bool IsInside(QuadTree qt, BBox bb)
         {
-            if (qt == null || qt.objects == null )
+            if (qt == null || qt.objects == null)
                 return false;
             return qt.bbox.Intersects(bb);
         }
@@ -220,6 +219,7 @@ namespace Rects
                 c.Trace(ref list, p);
             else if (IsInside(d, p))
                 d.Trace(ref list, p);
+
         }
 
         [Obsolete()]
