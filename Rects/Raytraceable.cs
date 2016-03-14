@@ -26,7 +26,7 @@ namespace Rects
         public abstract bool Trace(ref Ray ray);
         public abstract bool IsInsideOf(BBox bbox);
         public abstract bool IsCross(BBox bbox);
-
+        public abstract void DrawFast(Graphics g, Matrix33 m);
 
     }
 }

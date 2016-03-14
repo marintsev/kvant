@@ -12,6 +12,8 @@ namespace Rects
         double cx, cy, r;
         Color color;
 
+        public Point Center { get { return new Point(cx, cy); } }
+        public double Radius { get { return r; } }
         public Color Color { get { return color; } }
 
         public Circle(double x_, double y_, double r_, Color color_)

@@ -88,9 +88,14 @@ namespace Rects
                 mProject = GetMatrix();
             }
         }
-        private void Redraw(int width, int height)
+
+        //private bool drawFast = true;
+
+
+        private void Redraw(int width, int height, bool fast = true)
         {
             UpdateProject();
+            // TODO: текущая отрисовка должна иногда завершаться
             if (t != null)
                 t.Abort();
             t = null;
@@ -101,21 +106,33 @@ namespace Rects
                 var m = ConvertMatrix(Coords.Client, Coords.Model);
                 //var qt = scene.QuadTree;
                 var qt = scene.CreateTree(m, width, height);
-
-                for (int z = 64; z >= 0; z /= 2)
+                if (fast)
                 {
-                    var sw = new Stopwatch();
-                    sw.Start();
-                    var b = scene.Draw(qt, m, width, height, z);
-                    sw.Stop();
-                    Debug.WriteLine("Draw({0}): {1} ms", z, sw.ElapsedMilliseconds);
+                    var b = scene.DrawFast(m.Inverted(), width, height, 1);
                     lock (painting)
                     {
                         background = b;
                     }
                     Invalidate();
-                    if (z == 0)
-                        break;
+                }
+                else
+                {
+                    for (int z = 64; z >= 0; z /= 2)
+                    {
+                        var sw = new Stopwatch();
+                        sw.Start();
+                        var b = scene.Draw(qt, m, width, height, z);
+                        //var b = scene.DrawFast(m.Inverted(), width, height, z);
+                        sw.Stop();
+                        Debug.WriteLine("Draw({0}): {1} ms", z, sw.ElapsedMilliseconds);
+                        lock (painting)
+                        {
+                            background = b;
+                        }
+                        Invalidate();
+                        if (z == 0)
+                            break;
+                    }
                 }
 
             });
@@ -134,9 +151,9 @@ namespace Rects
             t.Abort();
         }
 
-        private void Redraw()
+        private void Redraw(bool fast = true)
         {
-            Redraw(ClientSize.Width, ClientSize.Height - menuStrip1.Height);
+            Redraw(ClientSize.Width, ClientSize.Height - menuStrip1.Height, fast);
         }
 
         private void Form1_Resize(object sender, EventArgs e)
@@ -223,7 +240,7 @@ namespace Rects
         {
             if (e.KeyChar == ' ')
             {
-                Redraw();
+                Redraw(false);
             }
             else if (e.KeyChar == (char)Keys.Escape)
                 Close();

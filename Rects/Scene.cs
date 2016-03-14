@@ -85,6 +85,24 @@ namespace Rects
             return qt;
         }
 
+        public Bitmap DrawFast(Matrix33 m, int w, int h, int z)
+        {
+            if (z < 1)
+                z = 1;
+
+            var hs = h / z;
+            var ws = w / z;
+
+            var b = new Bitmap(ws, hs);
+            var g = Graphics.FromImage(b);
+            foreach (var obj in objects)
+            {
+                obj.DrawFast(g, m);
+            }
+            g.Flush();
+            return b;
+        }
+
         public Bitmap Draw(QuadTree qt, Matrix33 m, int w, int h, int z)
         {
             if (z == 0)

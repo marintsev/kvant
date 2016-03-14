@@ -26,6 +26,11 @@ namespace Rects
             return new Point(-p.x, -p.y);
         }
 
+        public static Point operator +(Point p, double v)
+        {
+            return new Point(p.x + v, p.y + v);
+        }
+
         public Pointu ToPointu()
         {
             return new Pointu(x, y);
