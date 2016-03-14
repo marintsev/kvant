@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Windows.Forms;
 
 namespace Rects
 {
@@ -42,6 +43,7 @@ namespace Rects
 
         public Bitmap DrawSubpixel(QuadTree qt, Matrix33 m, int w, int h)
         {
+            var list = new List<Raytraceable>();
             var b = new Bitmap(w, h);
             for (int y = 0; y < h; y++)
             {
@@ -51,10 +53,10 @@ namespace Rects
                     var p2 = new Pointu(x + 0.25, y + 0.75, 1).Multiply(m).ToPoint();
                     var p3 = new Pointu(x + 0.75, y + 0.25, 1).Multiply(m).ToPoint();
                     var p4 = new Pointu(x + 0.75, y + 0.75, 1).Multiply(m).ToPoint();
-                    var c1 = GetColor(qt, p1);
-                    var c2 = GetColor(qt, p2);
-                    var c3 = GetColor(qt, p3);
-                    var c4 = GetColor(qt, p4);
+                    var c1 = GetColor(list, qt, p1);
+                    var c2 = GetColor(list, qt, p2);
+                    var c3 = GetColor(list, qt, p3);
+                    var c4 = GetColor(list, qt, p4);
                     var c12 = ColorUtils.Blend(c1, c2, 0.5, 0.5);
                     var c34 = ColorUtils.Blend(c3, c4, 0.5, 0.5);
                     var c1234 = ColorUtils.Blend(c12, c34, 0.5, 0.5);
@@ -64,7 +66,7 @@ namespace Rects
             return b;
         }
 
-        public QuadTree CreateTree( Matrix33 m, int w, int h )
+        public QuadTree CreateTree(Matrix33 m, int w, int h)
         {
             var p1 = (new Pointu(0, 0) * m).ToPoint();
             var p2 = (new Pointu(w, h) * m).ToPoint();
@@ -73,7 +75,7 @@ namespace Rects
             int cnt = 0;
             int added = 0;
             //foreach (var o in quadtree.Tracer(bb))
-            foreach (var o in objects )
+            foreach (var o in objects)
             {
                 if (qt.Add(o) != QuadTree.Culled)
                     added++;
@@ -103,7 +105,7 @@ namespace Rects
             //Draw(2): 2541 ms
             //Draw(1): 10010 ms
 
-           
+
             if (z == 0)
             {
                 return DrawSubpixel(qt, m, w, h);
@@ -113,35 +115,53 @@ namespace Rects
             var ws = w / z;
 
             var b = new Bitmap(ws, hs);
+            var list = new List<Raytraceable>();
             for (int y = 0; y < hs; y++)
             {
                 for (int x = 0; x < ws; x++)
                 {
                     var up = new Pointu(x * z, y * z, 1);
                     var p = up.Multiply(m).ToPoint();
-                    var clr = GetColor(qt, p.x, p.y);
+                    var clr = GetColor(list, qt, p.x, p.y);
                     b.SetPixel(x, y, clr);
                 }
             }
             return b;
         }
 
-        public Color GetColor(QuadTree qt, Point p)
+        public Color GetColor(List<Raytraceable> list, QuadTree qt, Point p)
         {
-            return GetColor(qt, p.x, p.y);
+            return GetColor(list, qt, p.x, p.y);
         }
 
-        public Color GetColor(QuadTree qt, double x, double y)
+        /*private IComparer<int> int_comparer = Comparer<int>.Create((_x, _y) => _y - _x);
+        private IComparer<Raytraceable> rt_comparer = Comparer<Raytraceable>.Create((_x, _y) => _y.Z - _x.Z);
+        private Comparison<Raytraceable> rtf_comparer = (_x, _y) => { return _y.Z - _x.Z; };*/
+
+        public Color GetColor(List<Raytraceable> list, QuadTree qt, double x, double y)
         {
             var ray = new Raytraceable.Ray();
             ray.x = x;
             ray.y = y;
             ray.stop = false;
             ray.c = Color.Transparent;
-            var list = new List<Raytraceable>();
+
+            /*list.Clear();
             qt.Trace(ref list, new Point(x, y));
-            list.Sort((_x, _y) => { return _y.Z - _x.Z; });
-            foreach (var obj in list)
+            try
+            {
+                list.Sort(rt_comparer);
+            }
+            catch (InvalidOperationException ioe)
+            {
+                throw ioe.GetBaseException();
+            }*/
+
+            /*var list = new SortedList<int, Raytraceable>(int_comparer);
+            qt.Trace(ref list, new Point(x, y));*/
+
+            foreach (var obj in qt.Tracer(new Point(x, y)).OrderByDescending(s => s.Z))
+            //foreach (var obj in list.Values)
             {
                 if (obj.Trace(ref ray))
                 {

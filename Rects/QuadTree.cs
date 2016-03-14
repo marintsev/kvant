@@ -25,7 +25,7 @@ namespace Rects
         private QuadTree a, b, c, d;
         private List<Raytraceable> objects;
 
-        public BBox BBox { get { return bbox;  } }
+        public BBox BBox { get { return bbox; } }
 
         public int Count
         {
@@ -147,14 +147,14 @@ namespace Rects
 
         public static bool IsInside(QuadTree qt, Point p)
         {
-            if (qt == null)
+            if (qt == null || qt.objects == null)
                 return false;
             return qt.bbox.IsInside(p);
         }
 
         public static bool IsInside(QuadTree qt, BBox bb)
         {
-            if (qt == null)
+            if (qt == null || qt.objects == null )
                 return false;
             return qt.bbox.Intersects(bb);
         }
@@ -169,29 +169,28 @@ namespace Rects
             }
 
             if (IsInside(a, bb))
-            //if( a != null )
                 foreach (var o in a.Tracer(bb))
                     yield return o;
             if (IsInside(b, bb))
-            //if (b != null)
                 foreach (var o in b.Tracer(bb))
                     yield return o;
             if (IsInside(c, bb))
-            //if (c != null)
                 foreach (var o in c.Tracer(bb))
                     yield return o;
             if (IsInside(d, bb))
-            //if (d != null)
                 foreach (var o in d.Tracer(bb))
                     yield return o;
 
-                
-            
             yield break;
         }
 
         public IEnumerable<Raytraceable> Tracer(Point p)
         {
+            if (objects != null)
+                if (parent == null || bbox.IsInside(p))
+                    foreach (var o in objects)
+                        yield return o;
+
             if (IsInside(a, p))
                 foreach (var o in a.Tracer(p))
                     yield return o;
@@ -205,22 +204,35 @@ namespace Rects
                 foreach (var o in d.Tracer(p))
                     yield return o;
 
-            if (objects != null)
-            {
-                //if (parent == null || bbox.IsInside(p))
-                    foreach (var o in objects)
-                        yield return o;
-            }
             yield break;
         }
         public void Trace(ref List<Raytraceable> list, Point p)
         {
             if (objects != null)
+                if (parent == null || bbox.IsInside(p))
+                    list.AddRange(objects);
+
+            if (IsInside(a, p))
+                a.Trace(ref list, p);
+            else if (IsInside(b, p))
+                b.Trace(ref list, p);
+            else if (IsInside(c, p))
+                c.Trace(ref list, p);
+            else if (IsInside(d, p))
+                d.Trace(ref list, p);
+        }
+
+        [Obsolete()]
+        public void Trace(ref SortedList<int, Raytraceable> list, Point p)
+        {
+            if (objects != null)
             {
                 if (parent == null || bbox.IsInside(p))
                 {
-                    list.AddRange(objects);
-                    
+                    foreach (var o in objects)
+                    {
+                        list.Add(o.Z, o);
+                    }
                 }
             }
 
@@ -232,6 +244,8 @@ namespace Rects
                 c.Trace(ref list, p);
             else if (IsInside(d, p))
                 d.Trace(ref list, p);
+
+
         }
 
         public override string ToString()

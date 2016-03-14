@@ -317,7 +317,7 @@ namespace Rects
             if (x < 0)
                 factor = 1.0 / factor;
             if (e.Delta == 0)
-                throw new NotImplementedException();
+                return;
 
             scale *= factor;
             var mp = new Point(e.X, e.Y);
