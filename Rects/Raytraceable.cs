@@ -16,6 +16,7 @@ namespace Rects
             public Color add;
             public bool stop;
         }
+        public int Z { get; set; }
         /// <summary>
         /// 
         /// </summary>
@@ -25,6 +26,6 @@ namespace Rects
         public abstract bool IsInsideOf(BBox bbox);
         public abstract bool IsCross(BBox bbox);
 
-        
+
     }
 }

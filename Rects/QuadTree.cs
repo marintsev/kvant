@@ -25,6 +25,37 @@ namespace Rects
         private QuadTree a, b, c, d;
         private List<Raytraceable> objects;
 
+        public BBox BBox { get { return bbox;  } }
+
+        public int Count
+        {
+            get
+            {
+                if (objects != null)
+                    return objects.Count;
+                else
+                    return 0;
+            }
+        }
+
+        public int TotalCount
+        {
+            get
+            {
+                int x = Count;
+                x += a != null ? a.TotalCount : 0;
+                x += b != null ? b.TotalCount : 0;
+                x += c != null ? c.TotalCount : 0;
+                x += d != null ? d.TotalCount : 0;
+                return x;
+            }
+        }
+
+        public bool HaveObject(Raytraceable o)
+        {
+            return objects.Find((x) => x == o) != null;
+        }
+
         public QuadTree(BBox bbox_, QuadTree parent_ = null)
         {
             parent = parent_;
@@ -38,7 +69,7 @@ namespace Rects
             if (list == null)
                 list = new List<Raytraceable>();
             list.Add(o);
-            Debug.WriteLine("Добавляем объект {0}...", o);
+            //Debug.WriteLine("Добавляем объект {0}...", o);
         }
 
         public QuadTree PeekSubtree(int i)
@@ -72,29 +103,46 @@ namespace Rects
             }
             throw new ArgumentException();
         }
-        public bool Add(Raytraceable o)
+
+        public const int Culled = 0;
+        private const int AddedInside = 1;
+        private const int AddedIntersect = 2;
+        public int Add(Raytraceable o)
         {
+            bool added;
             if (o.IsInsideOf(bbox))
             {
+                bool stop = false;
                 for (int i = 0; i < 4; i++)
                 {
                     var sub = PeekSubtree(i);
                     if (o.IsInsideOf(sub.bbox))
                     {
-                        AddToList(ref sub.objects, o);
-                        return true;
+                        sub.Add(o);
+                        stop = true;
+                        break;
                     }
                 }
-                AddToList(ref objects, o);
-                return false;
+                // Не помещается ни в одной из четвертей, добавляем.
+                if (!stop)
+                {
+                    AddToList(ref objects, o);
+                    return AddedInside;
+                }
+                // Поместился целиком в одной из четвертей.
+                return AddedInside;
             }
-            else if( o.IsCross(bbox))
+            else if (o.IsCross(bbox))
             {
                 AddToList(ref objects, o);
-                return false;
+                return AddedIntersect;
             }
-            return false;
-            //throw new NotImplementedException();
+            else
+            {
+                // Лежит целиком за пределами
+                //throw new NotImplementedException();
+                return Culled;
+            }
         }
 
         public static bool IsInside(QuadTree qt, Point p)
@@ -104,12 +152,78 @@ namespace Rects
             return qt.bbox.IsInside(p);
         }
 
+        public static bool IsInside(QuadTree qt, BBox bb)
+        {
+            if (qt == null)
+                return false;
+            return qt.bbox.Intersects(bb);
+        }
+
+        public IEnumerable<Raytraceable> Tracer(BBox bb)
+        {
+            if (objects != null)
+            {
+                if (parent == null || bbox.Intersects(bb))
+                    foreach (var o in objects)
+                        yield return o;
+            }
+
+            if (IsInside(a, bb))
+            //if( a != null )
+                foreach (var o in a.Tracer(bb))
+                    yield return o;
+            if (IsInside(b, bb))
+            //if (b != null)
+                foreach (var o in b.Tracer(bb))
+                    yield return o;
+            if (IsInside(c, bb))
+            //if (c != null)
+                foreach (var o in c.Tracer(bb))
+                    yield return o;
+            if (IsInside(d, bb))
+            //if (d != null)
+                foreach (var o in d.Tracer(bb))
+                    yield return o;
+
+                
+            
+            yield break;
+        }
+
+        public IEnumerable<Raytraceable> Tracer(Point p)
+        {
+            if (IsInside(a, p))
+                foreach (var o in a.Tracer(p))
+                    yield return o;
+            else if (IsInside(b, p))
+                foreach (var o in b.Tracer(p))
+                    yield return o;
+            else if (IsInside(c, p))
+                foreach (var o in c.Tracer(p))
+                    yield return o;
+            else if (IsInside(d, p))
+                foreach (var o in d.Tracer(p))
+                    yield return o;
+
+            if (objects != null)
+            {
+                //if (parent == null || bbox.IsInside(p))
+                    foreach (var o in objects)
+                        yield return o;
+            }
+            yield break;
+        }
         public void Trace(ref List<Raytraceable> list, Point p)
         {
-            if (parent == null || (objects != null && bbox.IsInside(p)))
+            if (objects != null)
             {
-                list.AddRange(objects);
+                if (parent == null || bbox.IsInside(p))
+                {
+                    list.AddRange(objects);
+                    
+                }
             }
+
             if (IsInside(a, p))
                 a.Trace(ref list, p);
             else if (IsInside(b, p))
@@ -118,16 +232,11 @@ namespace Rects
                 c.Trace(ref list, p);
             else if (IsInside(d, p))
                 d.Trace(ref list, p);
+        }
 
-            /*if (a != null)
-                a.Trace(ref list, p);
-            if (b != null)
-                b.Trace(ref list, p);
-            if (c != null)
-                c.Trace(ref list, p);
-            if (d != null)
-                d.Trace(ref list, p);*/
-
+        public override string ToString()
+        {
+            return string.Format("[QT {0}/{1}]", Count, TotalCount);
         }
     }
 }

@@ -28,6 +28,10 @@ namespace Rects
                 cy + Math.Sin(angle) * r);
         }
 
+        public bool IsInside(Point p)
+        {
+            return IsInside(p.x, p.y);
+        }
         public bool IsInside(double x, double y)
         {
             /*if (!(x >= cx - r && x <= cx + r))

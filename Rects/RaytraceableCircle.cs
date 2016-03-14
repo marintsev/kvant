@@ -37,7 +37,13 @@ namespace Rects
             return bbox.IsInside(circ.GetPoint(0)) ||
                 bbox.IsInside(circ.GetPoint(Math.PI * 0.5)) ||
                 bbox.IsInside(circ.GetPoint(Math.PI)) ||
-                bbox.IsInside(circ.GetPoint(Math.PI * 1.5));
+                bbox.IsInside(circ.GetPoint(Math.PI * 1.5)) ||
+                (
+                circ.IsInside(new Point(bbox.Left, bbox.Top)) ||
+                circ.IsInside(new Point(bbox.Right, bbox.Top)) ||
+                circ.IsInside(new Point(bbox.Left, bbox.Bottom)) ||
+                circ.IsInside(new Point(bbox.Right, bbox.Bottom))
+                );
         }
     }
 

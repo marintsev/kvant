@@ -98,12 +98,14 @@ namespace Rects
             {
                 int green = new Random().Next(256);
 
+                var m = ConvertMatrix(Coords.Client, Coords.Model);
+                var qt = scene.CreateTree(m, width, height);
+
                 for (int z = 64; z >= 0; z /= 2)
                 {
                     var sw = new Stopwatch();
                     sw.Start();
-                    var m = ConvertMatrix(Coords.Client, Coords.Model); //GetMatrix(width, height, z);
-                    var b = scene.Draw(m, width, height, z);
+                    var b = scene.Draw(qt, m, width, height, z);
                     sw.Stop();
                     Debug.WriteLine("Draw({0}): {1} ms", z, sw.ElapsedMilliseconds);
                     lock (painting)
@@ -211,6 +213,7 @@ namespace Rects
                     r.Next(256), r.Next(256), r.Next(256)
                     ));
             }
+         
             UpdateProject();
             Redraw();
         }
@@ -218,7 +221,9 @@ namespace Rects
         private void Form1_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == ' ')
+            {
                 Redraw();
+            }
             else if (e.KeyChar == (char)Keys.Escape)
                 Close();
         }
@@ -298,6 +303,7 @@ namespace Rects
             var pp = Convert(pu.ToPoint(), Coords.Window, Coords.Model);
             var pc = Convert(pu.ToPoint(), Coords.Window, Coords.Uniform);
             var p = pu.ToPoint();
+            Text = string.Format(" Objects: {0}/{1}, {2}", scene.QuadTree.Count, scene.Objects, pp);
             //Text = string.Format("{0} -> {1}, {2}", p, pp, pc);
         }
 
