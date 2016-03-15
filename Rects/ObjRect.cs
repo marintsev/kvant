@@ -79,10 +79,14 @@ namespace Rects
             return hovered;
         }
 
+        [Obsolete()]
         public bool OnClick(Point p)
         {
-            Selected = bbox.Contains(p);
-            return selected;
+            return Selected = TestSelect(p);
+        }
+        public bool TestSelect(Point p)
+        {
+            return bbox.Contains(p);
         }
 
         private void AddRect(List<Raytraceable> scene, double x, double y, double w, double h, double l, Color color)
@@ -147,6 +151,12 @@ namespace Rects
         internal void Select()
         {
             Selected = true;
+        }
+
+        public void Move( Point p )
+        {
+            bbox.Move(p);
+            Dirty = true;
         }
 
         internal bool Dehover()

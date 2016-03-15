@@ -136,6 +136,14 @@ namespace Rects
             return IsInside(p);
         }
 
+        public void Move( Point shift )
+        {
+            left += shift.x;
+            right += shift.x;
+            top += shift.y;
+            bottom += shift.y;
+        }
+
         [Obsolete]
         public bool IsInside(Point p)
         {

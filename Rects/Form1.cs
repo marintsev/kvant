@@ -413,11 +413,56 @@ namespace Rects
 
         private Point pMouseHold = Point.Invalid;
 
+        private Point pMoveJoint = Point.Invalid;
+
         private ObjRect newRectangle = null;
         private Point pStartPoint = Point.Invalid;
         private Point pEndPoint = Point.Invalid;
 
         private Color clrCurrentRect = Color.FromArgb(127, 255, 255, 255);
+
+        private List<ObjRect> selection = new List<ObjRect>();
+
+        private bool IsSelectionEmpty()
+        {
+            return selection == null || selection.Count == 0;
+        }
+
+        private int SelectionSize()
+        {
+            return selection.Count;
+        }
+
+        private List<ObjRect> SelectionByPoint( Point p )
+        {
+            var ret = new List<ObjRect>();
+            foreach (var o in objects)
+                if (o.TestSelect(p))
+                    ret.Add(o);
+            return ret;
+        }
+
+        private bool ListsAreSame( List<ObjRect> xs, List<ObjRect> ys )
+        {
+            if (xs.Count != ys.Count)
+                return false;
+            foreach( var x in xs )
+            {
+                if (ys.Find((i) => i == x) == null)
+                    return false;
+            }
+            return true;
+        }
+
+        private void ApplySelection( List<ObjRect> objs )
+        {
+            DeselectAll();
+            foreach (var o in objs)
+            {
+                o.Selected = true;
+                selection.Add(o);
+            }
+        }
 
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
@@ -425,12 +470,43 @@ namespace Rects
 
             // TODO: перемещение возможно и в других режимах
             var pMouse = new Point(e.X, e.Y);
+            // Если перемещаем объект
             if ((IsMode(Mode.Move) && (e.Button == MouseButtons.Left || e.Button == MouseButtons.Middle)) ||
-                (IsMode(Mode.Select) && e.Button == MouseButtons.Middle && !IsInMode(Mode.CanSelect)))
+                (IsMode(Mode.Select) && (e.Button == MouseButtons.Left || e.Button == MouseButtons.Middle)))
             {
-                pMouseHold = Convert(pMouse, Coords.Window, Coords.Model);
-                //DeselectAll();
-                SetMode(Mode.Move);
+                var pModel = Convert(pMouse, Coords.Window, Coords.Model);
+                var other_selection = false;
+                if (IsMode(Mode.Select) && e.Button == MouseButtons.Left)
+                {
+                    var new_selection = SelectionByPoint(pModel);
+                    other_selection = !ListsAreSame(selection, new_selection);
+                    ApplySelection(new_selection);
+                }
+
+                pMouseHold = pModel;
+                var size = SelectionSize();
+                Debug.WriteLine("selsize: {0}, other: {1}", size, other_selection);
+
+                if (size == 1 && (e.Button == MouseButtons.Left || e.Button == MouseButtons.Middle))
+                {
+                    AddToMode(Mode.MoveObjects);
+                    SetMode(Mode.Move);
+                }
+                else if (size == 0 || ( IsMode(Mode.Select) && e.Button == MouseButtons.Left ) )
+                {
+                    DelFromMode(Mode.MoveObjects);
+                    SetMode(Mode.Move);
+                }
+                else if ((size > 1 && !other_selection && IsMode(Mode.Select) && e.Button == MouseButtons.Middle) || IsMode(Mode.Move))
+                {
+                    AddToMode(Mode.MoveObjects);
+                    SetMode(Mode.Move);
+                }
+                else
+                {
+                    DelFromMode(Mode.MoveObjects);
+                    SetMode(Mode.Move);
+                }
             }
             else if (IsMode(Mode.CreateRectangle) && e.Button == MouseButtons.Left)
             {
@@ -440,18 +516,6 @@ namespace Rects
                 newRectangle.Select();
                 Debug.WriteLine("pStartPoint: {0}", pStartPoint);
                 objects.Add(newRectangle);
-            }
-            else if (IsMode(Mode.Select) && e.Button == MouseButtons.Left)
-            {
-                //var pMouse = new Point(e.X, e.Y);
-                var pModel = Convert(pMouse, Coords.Window, Coords.Model);
-                var selected = false;
-                foreach (var o in objects)
-                    if (o.OnClick(pModel))
-                        selected = true;
-
-                if (!selected)
-                    DeselectAll();
             }
             CanUpdateScene();
             CanRedraw();
@@ -472,19 +536,30 @@ namespace Rects
             {
                 if (!pMouseHold.IsInvalid())
                 {
-                    var new_center = pMouseHold;
-                    var new_mouse = Convert(pMouse, Coords.Window, Coords.Uniform);
-                    Debug.WriteLine("New center: {0}", new_center);
-                    Debug.WriteLine("New mouse: {0}", new_mouse);
-                    lock (painting)
+                    if (IsInMode(Mode.MoveObjects))
                     {
-                        center = new_center;
-                        mouse = new_mouse;
+                        var shift = pp - pMouseHold;
+                        Debug.WriteLine("shift: {0}", shift);
+                        foreach (var so in selection)
+                        {
+                            so.Move(shift);
+                        }
+                        pMouseHold = pp;
+                        CanUpdateScene();
                     }
-                    // Если идёт отрисовка, то после завершения начать новую.
-                    /*if (paintingThreads == 0)
-                        Redraw();*/
-                    SetDirty();
+                    else
+                    {
+                        var new_center = pMouseHold;
+                        var new_mouse = Convert(pMouse, Coords.Window, Coords.Uniform);
+                        Debug.WriteLine("New center: {0}", new_center);
+                        Debug.WriteLine("New mouse: {0}", new_mouse);
+                        lock (painting)
+                        {
+                            center = new_center;
+                            mouse = new_mouse;
+                        }
+                        SetDirty();
+                    }
                 }
             }
             else if (IsMode(Mode.CreateRectangle) && newRectangle != null)
@@ -494,28 +569,18 @@ namespace Rects
                 newRectangle.BBox = new BBox(pStartPoint, pEndPoint);
                 UpdateScene();
                 SetDirty();
-                /*SetDirty();*/
-                //Redraw();
             }
             else if (IsMode(Mode.Select))
             {
                 bool hit = false;
-                bool redraw = false;
-                bool immed = false;
-                /*int before = DehoverAll();
-                int after = 0;*/
+
                 foreach (var o in objects)
-                {
                     if (o.OnHover(pp))
-                    {
                         hit = true;
-                    }
-                }
                 // Если есть объекты под указателем, либо были на прошлом кадре
                 if (hit)
                 {
                     AddToMode(Mode.CanSelect);
-                    //redraw = true;
                 }
                 else
                 {
@@ -552,6 +617,8 @@ namespace Rects
             if (IsMode(Mode.Move))
             {
                 pMouseHold = Point.Invalid;
+                //if (IsInMode(Mode.MoveObjects))
+                    DelFromMode(Mode.MoveObjects);
                 SetLastMode();
             }
             else if (IsMode(Mode.CreateRectangle))
@@ -570,9 +637,8 @@ namespace Rects
         private void DeselectAll()
         {
             foreach (var o in objects)
-            {
                 o.Deselect();
-            }
+            selection.Clear();
         }
 
         private void Form1_MouseWheel(object sender, MouseEventArgs e)
@@ -611,7 +677,7 @@ namespace Rects
 
         // =========================== Mode =========================
         // TODO: Сделать проще
-        private enum Mode { CreateRectangle = 0, Move = 1, Select = 2, Scaling = 3, CanSelect = 4 };
+        private enum Mode { CreateRectangle = 0, Move = 1, Select = 2, Scaling = 3, CanSelect = 1 << 2, MoveObjects = 1 << 3 };
         private int modeMask = (1 << 2) - 1;
         private static int defaultMode = (int)Mode.Select;
         private int mode = defaultMode, lastMode = defaultMode;
@@ -649,7 +715,7 @@ namespace Rects
 
         private void AddToMode(Mode mode_, bool update = true)
         {
-            lastMode = mode;
+            //lastMode = mode;
             mode |= (int)mode_;
             if (update)
                 UpdateUI();
@@ -657,7 +723,7 @@ namespace Rects
 
         private void ToggleInMode(Mode mode_, bool update = true)
         {
-            lastMode = mode;
+            //lastMode = mode;
             mode ^= (int)mode_;
             if (update)
                 UpdateUI();
@@ -665,7 +731,7 @@ namespace Rects
 
         private void DelFromMode(Mode mode_, bool update = true)
         {
-            lastMode = mode;
+            //lastMode = mode;
             mode &= ~((int)mode_);
             if (update)
                 UpdateUI();

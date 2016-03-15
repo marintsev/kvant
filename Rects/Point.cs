@@ -31,6 +31,11 @@ namespace Rects
             return new Point(p.x + v, p.y + v);
         }
 
+        public static Point operator -(Point a, Point b)
+        {
+            return new Point(a.x - b.x, a.y - b.y);
+        }
+
         public Pointu ToPointu()
         {
             return new Pointu(x, y);

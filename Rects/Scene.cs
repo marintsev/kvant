@@ -27,7 +27,7 @@ namespace Rects
             {
                 bbox = CalcBBox();
                 quadtree = CalcQuadTree(bbox);
-                Debug.WriteLine("BBox: {0}", bbox);
+                //Debug.WriteLine("BBox: {0}", bbox);
                 isDirtyQuadTree = false;
             }
             return quadtree;
@@ -138,7 +138,7 @@ namespace Rects
                         added++;
                     cnt++;
                 }
-            Debug.WriteLine("QuadTree: {0}/{1}/{2}", qt, added, cnt);
+            //Debug.WriteLine("QuadTree: {0}/{1}/{2}", qt, added, cnt);
             return qt;
         }
         public QuadTree CreateTree(Matrix33 m, int w, int h)
