@@ -284,15 +284,7 @@ namespace Rects
             }
         }
 
-        private void Form1_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == ' ')
-            {
-                Redraw(false);
-            }
-            else if (e.KeyChar == (char)Keys.Escape)
-                Close();
-        }
+
 
 
 
@@ -433,7 +425,7 @@ namespace Rects
             return selection.Count;
         }
 
-        private List<ObjRect> SelectionByPoint( Point p )
+        private List<ObjRect> SelectionByPoint(Point p)
         {
             var ret = new List<ObjRect>();
             foreach (var o in objects)
@@ -442,11 +434,11 @@ namespace Rects
             return ret;
         }
 
-        private bool ListsAreSame( List<ObjRect> xs, List<ObjRect> ys )
+        private bool ListsAreSame(List<ObjRect> xs, List<ObjRect> ys)
         {
             if (xs.Count != ys.Count)
                 return false;
-            foreach( var x in xs )
+            foreach (var x in xs)
             {
                 if (ys.Find((i) => i == x) == null)
                     return false;
@@ -454,7 +446,7 @@ namespace Rects
             return true;
         }
 
-        private void ApplySelection( List<ObjRect> objs )
+        private void ApplySelection(List<ObjRect> objs)
         {
             DeselectAll();
             foreach (var o in objs)
@@ -462,6 +454,17 @@ namespace Rects
                 o.Selected = true;
                 selection.Add(o);
             }
+        }
+
+        private void DeleteSelection()
+        {
+            if (IsSelectionEmpty())
+                return;
+            foreach (var o in selection)
+                objects.Remove(o);
+            selection.Clear();
+            DeselectAll();
+            UpdateScene();
         }
 
         private void Form1_MouseDown(object sender, MouseEventArgs e)
@@ -472,7 +475,7 @@ namespace Rects
             var pMouse = new Point(e.X, e.Y);
             // Если перемещаем объект
             if ((IsMode(Mode.Move) && (e.Button == MouseButtons.Left || e.Button == MouseButtons.Middle)) ||
-                (IsMode(Mode.Select) && (e.Button == MouseButtons.Left || e.Button == MouseButtons.Middle)))
+                (IsMode(Mode.Select) && (e.Button == MouseButtons.Left || e.Button == MouseButtons.Middle || e.Button == MouseButtons.Right)))
             {
                 var pModel = Convert(pMouse, Coords.Window, Coords.Model);
                 var other_selection = false;
@@ -485,29 +488,26 @@ namespace Rects
 
                 pMouseHold = pModel;
                 var size = SelectionSize();
-                Debug.WriteLine("(size > 1)[{0}] && (!other_selection)[{1}] && IsMode(Mode.Select)[{2}] || IsMode(Mode.Move)[{3}]", 
-                    size>1,!other_selection,IsMode(Mode.Select), IsMode(Mode.Move) );
-
-                if (size == 1 && (e.Button == MouseButtons.Left || e.Button == MouseButtons.Middle))
-                {
-                    AddToMode(Mode.MoveObjects);
-                    SetMode(Mode.Move);
-                }
-                else if (size == 0 /*|| ( IsMode(Mode.Select) && e.Button == MouseButtons.Left )*/ )
-                {
-                    DelFromMode(Mode.MoveObjects);
-                    SetMode(Mode.Move);
-                }
-                else if ((size > 1 && IsMode(Mode.Select) /*&& e.Button == MouseButtons.Middle*/) || IsMode(Mode.Move))
-                {
-                    SetInMode(Mode.MoveObjects,!other_selection);
-                    SetMode(Mode.Move);
-                }
+                if (e.Button == MouseButtons.Right && !other_selection)
+                    DeleteSelection();
                 else
                 {
-                    throw new Exception();
-                    /*DelFromMode(Mode.MoveObjects);
-                    SetMode(Mode.Move);*/
+
+                    if (size == 1 && (e.Button == MouseButtons.Left || e.Button == MouseButtons.Middle))
+                    {
+                        AddToMode(Mode.MoveObjects);
+                        SetMode(Mode.Move);
+                    }
+                    else if (size == 0 /*|| ( IsMode(Mode.Select) && e.Button == MouseButtons.Left )*/ )
+                    {
+                        DelFromMode(Mode.MoveObjects);
+                        SetMode(Mode.Move);
+                    }
+                    else if ((size > 1 && IsMode(Mode.Select) /*&& e.Button == MouseButtons.Middle*/) || IsMode(Mode.Move))
+                    {
+                        SetInMode(Mode.MoveObjects, !other_selection);
+                        SetMode(Mode.Move);
+                    }
                 }
             }
             else if (IsMode(Mode.CreateRectangle) && e.Button == MouseButtons.Left)
@@ -618,7 +618,7 @@ namespace Rects
             {
                 pMouseHold = Point.Invalid;
                 //if (IsInMode(Mode.MoveObjects))
-                    DelFromMode(Mode.MoveObjects);
+                DelFromMode(Mode.MoveObjects);
                 SetLastMode();
             }
             else if (IsMode(Mode.CreateRectangle))
@@ -721,7 +721,7 @@ namespace Rects
                 UpdateUI();
         }
 
-        private void SetInMode( Mode mode_, bool value, bool update = true )
+        private void SetInMode(Mode mode_, bool value, bool update = true)
         {
             if (value)
                 AddToMode(mode_, update);
@@ -777,9 +777,11 @@ namespace Rects
         private void UpdateUI()
         {
             SetCursor();
+            miMove.Checked = IsMode(Mode.Move);
+            miSelect.Checked = IsMode(Mode.Select);
+            miScale.Checked = IsMode(Mode.Scaling);
+            miCreateRectangle.Checked = IsMode(Mode.CreateRectangle);
         }
-
-
 
         private void навигацияToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -808,6 +810,27 @@ namespace Rects
         private void timer1_Tick(object sender, EventArgs e)
         {
             CanRedraw();
+        }
+
+        // ===================== Keyboard =====================
+        private void Form1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            Debug.WriteLine("Key: {0}", e.KeyChar);
+            if (e.KeyChar == ' ')
+            {
+                Redraw(false);
+            }
+            else if (e.KeyChar == (char)Keys.Escape)
+                Close();
+        }
+
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Delete)
+            {
+                DeleteSelection();
+            }
+
         }
     }
 

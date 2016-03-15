@@ -37,10 +37,10 @@
             this.выходToolStripMenuItem = new System.Windows.Forms.ToolStripSeparator();
             this.выходToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.инструментыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.выделениеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.созданиеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.навигацияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.масштабированиеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.miSelect = new System.Windows.Forms.ToolStripMenuItem();
+            this.miCreateRectangle = new System.Windows.Forms.ToolStripMenuItem();
+            this.miMove = new System.Windows.Forms.ToolStripMenuItem();
+            this.miScale = new System.Windows.Forms.ToolStripMenuItem();
             this.объектToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.удалитьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
@@ -108,41 +108,41 @@
             // инструментыToolStripMenuItem
             // 
             this.инструментыToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.выделениеToolStripMenuItem,
-            this.созданиеToolStripMenuItem,
-            this.навигацияToolStripMenuItem,
-            this.масштабированиеToolStripMenuItem});
+            this.miSelect,
+            this.miCreateRectangle,
+            this.miMove,
+            this.miScale});
             this.инструментыToolStripMenuItem.Name = "инструментыToolStripMenuItem";
             this.инструментыToolStripMenuItem.Size = new System.Drawing.Size(95, 20);
             this.инструментыToolStripMenuItem.Text = "Инструменты";
             // 
-            // выделениеToolStripMenuItem
+            // miSelect
             // 
-            this.выделениеToolStripMenuItem.Name = "выделениеToolStripMenuItem";
-            this.выделениеToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
-            this.выделениеToolStripMenuItem.Text = "Выделение";
-            this.выделениеToolStripMenuItem.Click += new System.EventHandler(this.выделениеToolStripMenuItem_Click);
+            this.miSelect.Name = "miSelect";
+            this.miSelect.Size = new System.Drawing.Size(179, 22);
+            this.miSelect.Text = "Выделение";
+            this.miSelect.Click += new System.EventHandler(this.выделениеToolStripMenuItem_Click);
             // 
-            // созданиеToolStripMenuItem
+            // miCreateRectangle
             // 
-            this.созданиеToolStripMenuItem.Name = "созданиеToolStripMenuItem";
-            this.созданиеToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
-            this.созданиеToolStripMenuItem.Text = "Создание";
-            this.созданиеToolStripMenuItem.Click += new System.EventHandler(this.созданиеToolStripMenuItem_Click);
+            this.miCreateRectangle.Name = "miCreateRectangle";
+            this.miCreateRectangle.Size = new System.Drawing.Size(179, 22);
+            this.miCreateRectangle.Text = "Создание";
+            this.miCreateRectangle.Click += new System.EventHandler(this.созданиеToolStripMenuItem_Click);
             // 
-            // навигацияToolStripMenuItem
+            // miMove
             // 
-            this.навигацияToolStripMenuItem.Name = "навигацияToolStripMenuItem";
-            this.навигацияToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
-            this.навигацияToolStripMenuItem.Text = "Навигация";
-            this.навигацияToolStripMenuItem.Click += new System.EventHandler(this.навигацияToolStripMenuItem_Click);
+            this.miMove.Name = "miMove";
+            this.miMove.Size = new System.Drawing.Size(179, 22);
+            this.miMove.Text = "Навигация";
+            this.miMove.Click += new System.EventHandler(this.навигацияToolStripMenuItem_Click);
             // 
-            // масштабированиеToolStripMenuItem
+            // miScale
             // 
-            this.масштабированиеToolStripMenuItem.Name = "масштабированиеToolStripMenuItem";
-            this.масштабированиеToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
-            this.масштабированиеToolStripMenuItem.Text = "Масштабирование";
-            this.масштабированиеToolStripMenuItem.Click += new System.EventHandler(this.масштабированиеToolStripMenuItem_Click);
+            this.miScale.Name = "miScale";
+            this.miScale.Size = new System.Drawing.Size(179, 22);
+            this.miScale.Text = "Масштабирование";
+            this.miScale.Click += new System.EventHandler(this.масштабированиеToolStripMenuItem_Click);
             // 
             // объектToolStripMenuItem
             // 
@@ -177,6 +177,7 @@
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.Form1_Paint);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.Form1_KeyPress);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseDown);
             this.MouseEnter += new System.EventHandler(this.Form1_MouseEnter);
@@ -201,12 +202,12 @@
         private System.Windows.Forms.ToolStripSeparator выходToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem выходToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem инструментыToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem выделениеToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem созданиеToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem miSelect;
+        private System.Windows.Forms.ToolStripMenuItem miCreateRectangle;
         private System.Windows.Forms.ToolStripMenuItem объектToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem удалитьToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem навигацияToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem масштабированиеToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem miMove;
+        private System.Windows.Forms.ToolStripMenuItem miScale;
         private System.Windows.Forms.Timer timer1;
     }
 }
