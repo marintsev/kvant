@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.изображениеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.создатьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -38,10 +39,11 @@
             this.инструментыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.выделениеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.созданиеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.объектToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.удалитьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.навигацияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.масштабированиеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.объектToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.удалитьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -128,6 +130,20 @@
             this.созданиеToolStripMenuItem.Text = "Создание";
             this.созданиеToolStripMenuItem.Click += new System.EventHandler(this.созданиеToolStripMenuItem_Click);
             // 
+            // навигацияToolStripMenuItem
+            // 
+            this.навигацияToolStripMenuItem.Name = "навигацияToolStripMenuItem";
+            this.навигацияToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.навигацияToolStripMenuItem.Text = "Навигация";
+            this.навигацияToolStripMenuItem.Click += new System.EventHandler(this.навигацияToolStripMenuItem_Click);
+            // 
+            // масштабированиеToolStripMenuItem
+            // 
+            this.масштабированиеToolStripMenuItem.Name = "масштабированиеToolStripMenuItem";
+            this.масштабированиеToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.масштабированиеToolStripMenuItem.Text = "Масштабирование";
+            this.масштабированиеToolStripMenuItem.Click += new System.EventHandler(this.масштабированиеToolStripMenuItem_Click);
+            // 
             // объектToolStripMenuItem
             // 
             this.объектToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -143,19 +159,10 @@
             this.удалитьToolStripMenuItem.Size = new System.Drawing.Size(118, 22);
             this.удалитьToolStripMenuItem.Text = "Удалить";
             // 
-            // навигацияToolStripMenuItem
+            // timer1
             // 
-            this.навигацияToolStripMenuItem.Name = "навигацияToolStripMenuItem";
-            this.навигацияToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
-            this.навигацияToolStripMenuItem.Text = "Навигация";
-            this.навигацияToolStripMenuItem.Click += new System.EventHandler(this.навигацияToolStripMenuItem_Click);
-            // 
-            // масштабированиеToolStripMenuItem
-            // 
-            this.масштабированиеToolStripMenuItem.Name = "масштабированиеToolStripMenuItem";
-            this.масштабированиеToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
-            this.масштабированиеToolStripMenuItem.Text = "Масштабирование";
-            this.масштабированиеToolStripMenuItem.Click += new System.EventHandler(this.масштабированиеToolStripMenuItem_Click);
+            this.timer1.Enabled = true;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // Form1
             // 
@@ -200,6 +207,7 @@
         private System.Windows.Forms.ToolStripMenuItem удалитьToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem навигацияToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem масштабированиеToolStripMenuItem;
+        private System.Windows.Forms.Timer timer1;
     }
 }
 

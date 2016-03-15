@@ -83,6 +83,9 @@ namespace Rects
             return mi.Translated(0, menuStrip1.Height);
         }
 
+        /// <summary>
+        /// Обновляет матрицы.
+        /// </summary>
         private void UpdateProject()
         {
             mClientToWindow = GetClientToWindowMatrix();
@@ -95,6 +98,57 @@ namespace Rects
 
         private bool drawFast = true;
         private int paintingThreads;
+
+        private void CanRedraw()
+        {
+            if (IsDirty())
+            {
+                if (!IsPainting())
+                {
+                    var d = TrimDirty();
+                    Redraw(drawFast, false);
+                }
+            }
+        }
+
+        private bool TrimDirty()
+        {
+            long before = Environment.TickCount;
+            bool changed = false;
+            lock (dirty)
+            {
+                while (dirtyStamps.Count != 0)
+                {
+                    var s = dirtyStamps[0];
+                    if (s < before)
+                    {
+                        dirtyStamps.RemoveAt(0);
+                        changed = true;
+                    }
+                    else
+                        break;
+                }
+            }
+            return changed;
+        }
+
+        private long PopDirty()
+        {
+            lock (dirty)
+            {
+                var now = Environment.TickCount;
+                if (dirtyStamps.Count == 0)
+                    throw new ArgumentException();
+                var ret = dirtyStamps[dirtyStamps.Count - 1];
+                dirtyStamps.Clear();
+                return ret;
+            }
+        }
+
+        private bool IsPainting()
+        {
+            return t != null && paintingThreads != 0;
+        }
 
         private void Redraw(int width, int height, bool fast = true)
         {
@@ -185,7 +239,9 @@ namespace Rects
         private void Form1_Resize(object sender, EventArgs e)
         {
             //Text = string.Format("{0} {1}", Width, Height);
-            Redraw();
+            //Redraw();
+            SetDirty();
+            CanRedraw();
         }
 
         private void AddTransparentPattern()
@@ -212,7 +268,8 @@ namespace Rects
             }
             UpdateScene();
             UpdateProject();
-            Redraw();
+            SetDirty();
+            CanRedraw();
         }
 
         private void UpdateScene()
@@ -223,6 +280,7 @@ namespace Rects
                 scene.Add(new RaytraceableGradient(0.5, 0.5, 0.5, 0.5));
                 foreach (var o in objects)
                     scene.Add(o.EmitObjects());
+                SetDirty();
             }
         }
 
@@ -301,6 +359,58 @@ namespace Rects
             return (what.ToPointu() * m).ToPoint();
         }
 
+        // ====================== Dirty ================================ 
+
+        List<long> dirtyStamps = new List<long>();
+        object dirty = new object();
+
+        private void SetDirty()
+        {
+            // TODO: Вызывать CanUpdateScene перед каждым вызовом Redraw
+            lock (dirty)
+            {
+                dirtyStamps.Add(Environment.TickCount);
+            }
+        }
+
+        private bool IsDirty()
+        {
+            lock (dirty)
+            {
+                Text = string.Format("{0}", dirtyStamps.Count);
+                var was = TrimDirty();
+                return dirtyStamps.Count != 0 || was;
+            }
+        }
+
+        private bool ObjectsIsDirty()
+        {
+            foreach (var o in objects)
+            {
+                if (o.Dirty)
+                    return true;
+            }
+            return false;
+        }
+
+        private void SetObjectsNotDirty()
+        {
+            foreach (var o in objects)
+                o.Dirty = false;
+        }
+
+        private void CanUpdateScene()
+        {
+            if (ObjectsIsDirty())
+            {
+                UpdateScene();
+                //SetDirty();
+                SetObjectsNotDirty();
+            }
+        }
+
+        // ====================== Mouse ========================
+
         private Point pMouseHold = Point.Invalid;
 
         private ObjRect newRectangle = null;
@@ -315,13 +425,14 @@ namespace Rects
 
             // TODO: перемещение возможно и в других режимах
             var pMouse = new Point(e.X, e.Y);
-            if (IsMode(Mode.Move) ||
-                (IsMode(Mode.Select) && !IsInMode( Mode.CanSelect )))
+            if ((IsMode(Mode.Move) && (e.Button == MouseButtons.Left || e.Button == MouseButtons.Middle)) ||
+                (IsMode(Mode.Select) && e.Button == MouseButtons.Middle && !IsInMode(Mode.CanSelect)))
             {
                 pMouseHold = Convert(pMouse, Coords.Window, Coords.Model);
+                //DeselectAll();
                 SetMode(Mode.Move);
             }
-            else if (IsMode(Mode.CreateRectangle))
+            else if (IsMode(Mode.CreateRectangle) && e.Button == MouseButtons.Left)
             {
                 pStartPoint = Convert(pMouse, Coords.Window, Coords.Model);
                 newRectangle = new ObjRect(new BBox(pStartPoint.x, pStartPoint.x, pStartPoint.y, pStartPoint.y), clrCurrentRect);
@@ -330,6 +441,20 @@ namespace Rects
                 Debug.WriteLine("pStartPoint: {0}", pStartPoint);
                 objects.Add(newRectangle);
             }
+            else if (IsMode(Mode.Select) && e.Button == MouseButtons.Left)
+            {
+                //var pMouse = new Point(e.X, e.Y);
+                var pModel = Convert(pMouse, Coords.Window, Coords.Model);
+                var selected = false;
+                foreach (var o in objects)
+                    if (o.OnClick(pModel))
+                        selected = true;
+
+                if (!selected)
+                    DeselectAll();
+            }
+            CanUpdateScene();
+            CanRedraw();
         }
 
         private void Form1_MouseMove(object sender, MouseEventArgs e)
@@ -357,8 +482,9 @@ namespace Rects
                         mouse = new_mouse;
                     }
                     // Если идёт отрисовка, то после завершения начать новую.
-                    if (paintingThreads == 0)
-                        Redraw();
+                    /*if (paintingThreads == 0)
+                        Redraw();*/
+                    SetDirty();
                 }
             }
             else if (IsMode(Mode.CreateRectangle) && newRectangle != null)
@@ -367,52 +493,58 @@ namespace Rects
                 Debug.WriteLine("pEndPoint: {0}", pEndPoint);
                 newRectangle.BBox = new BBox(pStartPoint, pEndPoint);
                 UpdateScene();
-                Redraw();
+                SetDirty();
+                /*SetDirty();*/
+                //Redraw();
             }
             else if (IsMode(Mode.Select))
             {
                 bool hit = false;
                 bool redraw = false;
+                bool immed = false;
+                /*int before = DehoverAll();
+                int after = 0;*/
                 foreach (var o in objects)
                 {
                     if (o.OnHover(pp))
+                    {
                         hit = true;
+                    }
                 }
                 // Если есть объекты под указателем, либо были на прошлом кадре
                 if (hit)
                 {
                     AddToMode(Mode.CanSelect);
-                    redraw = true;
+                    //redraw = true;
                 }
                 else
                 {
                     //Debug.WriteLine("dehover: {0}", DehoverAll());
-                    if( DehoverAll() )
-                        redraw = true;
+                    DehoverAll();
+                    //redraw = true;
                     // TODO: при наведении на фон иногда надо отрисовывать
                     if (IsInMode(Mode.CanSelect))
-                        redraw = true;
-                    DelFromMode(Mode.CanSelect);
+                    {
+                        DelFromMode(Mode.CanSelect);
+                        SetDirty();
+                    }
                 }
-                if( redraw )
-                {
-                    UpdateScene();
-                    Redraw();
-                }
+                CanUpdateScene();
             }
+            CanRedraw();
 
             //Text = string.Format("{0} -> {1}, {2}", p, pp, pc);
         }
 
-        private bool DehoverAll()
+        private int DehoverAll()
         {
-            bool changed = false;
+            int count = 0;
             foreach (var o in objects)
             {
                 if (o.Dehover())
-                    changed = true;
+                    count++;
             }
-            return changed;
+            return count;
         }
 
         private void Form1_MouseUp(object sender, MouseEventArgs e)
@@ -430,27 +562,8 @@ namespace Rects
                 newRectangle.BBox = new BBox(pStartPoint, pEndPoint);
                 newRectangle = null;
                 UpdateScene();
-                Redraw();
-            }
-            else if (IsMode(Mode.Select))
-            {
-                var pMouse = new Point(e.X, e.Y);
-                var pModel = Convert(pMouse, Coords.Window, Coords.Model);
-                var changed = false;
-                foreach (var o in objects)
-                    if (o.OnClick(pModel))
-                        changed = true;
-                if (changed)
-                {
-                    UpdateScene();
-                    Redraw();
-                }
-                else
-                {
-                    DeselectAll();
-                    UpdateScene();
-                    Redraw();
-                }
+                SetDirty();
+                CanRedraw();
             }
         }
 
@@ -485,7 +598,9 @@ namespace Rects
                 center = new_center;
                 mouse = new_mouse;
             }
-            Redraw(drawFast, false);
+            SetDirty();
+            CanRedraw();
+            //Redraw(drawFast, false);
         }
 
         private void выделениеToolStripMenuItem_Click(object sender, EventArgs e)
@@ -497,13 +612,13 @@ namespace Rects
         // =========================== Mode =========================
         // TODO: Сделать проще
         private enum Mode { CreateRectangle = 0, Move = 1, Select = 2, Scaling = 3, CanSelect = 4 };
-        private int modeMask = (1<<2)-1;
-        private static int defaultMode = (int) Mode.Select;
+        private int modeMask = (1 << 2) - 1;
+        private static int defaultMode = (int)Mode.Select;
         private int mode = defaultMode, lastMode = defaultMode;
 
         private void SetLastMode()
         {
-            SetMode( (Mode) lastMode);
+            SetMode((Mode)lastMode);
         }
         private Cursor GetCursor()
         {
@@ -527,7 +642,7 @@ namespace Rects
         {
             lastMode = mode;
             mode &= ~modeMask;
-            mode |= (int) mode_;
+            mode |= (int)mode_;
             Debug.WriteLine("{0} -> {1}", lastMode, mode_);
             UpdateUI();
         }
@@ -535,12 +650,12 @@ namespace Rects
         private void AddToMode(Mode mode_, bool update = true)
         {
             lastMode = mode;
-            mode |= (int) mode_;
+            mode |= (int)mode_;
             if (update)
                 UpdateUI();
         }
 
-        private void ToggleInMode( Mode mode_, bool update = true )
+        private void ToggleInMode(Mode mode_, bool update = true)
         {
             lastMode = mode;
             mode ^= (int)mode_;
@@ -558,12 +673,12 @@ namespace Rects
 
         private bool IsMode(Mode mode_)
         {
-            return (mode & modeMask) == (int) mode_;
+            return (mode & modeMask) == (int)mode_;
         }
 
         private Mode GetMode(Mode mode_)
         {
-            return (Mode) (mode & modeMask);
+            return (Mode)(mode & modeMask);
         }
 
         private bool IsInMode(Mode mode_)
@@ -590,7 +705,7 @@ namespace Rects
             SetCursor();
         }
 
-        
+
 
         private void навигацияToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -605,11 +720,20 @@ namespace Rects
         private void Form1_MouseLeave(object sender, EventArgs e)
         {
             Cursor = Cursors.Arrow;
+            DehoverAll();
+            UpdateScene();
+            SetDirty();
+            CanRedraw();
         }
 
         private void масштабированиеToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SetMode(Mode.Scaling);
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            CanRedraw();
         }
     }
 

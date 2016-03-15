@@ -34,9 +34,19 @@ namespace Rects
             return x;
         }
 
-        public static Color Enlight(Color c)
+        public static Color Opaque(this Color c )
         {
-            return Blend(c, Color.White);
+            return WithAlpha(c, 255);
+        }
+
+        public static Color WithAlpha( this Color c, byte alpha )
+        {
+            return Color.FromArgb(alpha, c.R, c.G, c.B);
+        }
+
+        public static Color Enlight(this Color c)
+        {
+            return Blend(c, Color.White, 0.5, 0.5);
         }
 
         public static Color Blend(Color c1, Color c2)

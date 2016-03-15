@@ -12,8 +12,59 @@ namespace Rects
         private BBox bbox;
         private Color color;
         private bool hovered, selected;
+        private bool dirty = true;
 
-        public BBox BBox { get { return bbox; } set { bbox = value; } }
+        public bool Selected
+        {
+            get
+            {
+                return selected;
+            }
+            set
+            {
+                if (selected != value)
+                {
+                    selected = value;
+                    Dirty = true;
+                }
+            }
+        }
+        public bool Hovered
+        {
+            get
+            {
+                return hovered;
+            }
+            set
+            {
+                if (hovered != value)
+                {
+                    hovered = value;
+                    Dirty = true;
+                }
+            }
+        }
+        public bool Dirty
+        {
+            get
+            {
+                return dirty;
+            }
+            set
+            {
+                dirty = value;
+            }
+        }
+
+        public BBox BBox
+        {
+            get { return bbox; }
+            set
+            {
+                bbox = value;
+                Dirty = true;
+            }
+        }
         public ObjRect(BBox bbox_, Color color_)
         {
             bbox = bbox_;
@@ -24,13 +75,13 @@ namespace Rects
 
         public bool OnHover(Point p)
         {
-            hovered = bbox.Contains(p);
+            Hovered = bbox.Contains(p);
             return hovered;
         }
 
         public bool OnClick(Point p)
         {
-            selected = bbox.Contains(p);
+            Selected = bbox.Contains(p);
             return selected;
         }
 
@@ -90,19 +141,22 @@ namespace Rects
 
         internal void Deselect()
         {
-            selected = false;
+            Selected = false;
         }
 
         internal void Select()
         {
-            selected = true;
+            Selected = true;
         }
 
         internal bool Dehover()
         {
-            var last = hovered;
-            hovered = false;
-            return last;
+            if( hovered == true )
+            {
+                Hovered = false;
+                return true;
+            }
+            return false;
         }
     }
 }
