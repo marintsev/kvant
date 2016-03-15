@@ -44,5 +44,15 @@ namespace Rects
             double dy = y - cy;
             return dx * dx + dy * dy <= r * r;
         }
+
+        internal BBox CalcBBox()
+        {
+            return new BBox( 
+                cx-r,
+                cx+r,
+                cy+r,
+                cy-r
+                );
+        }
     }
 }

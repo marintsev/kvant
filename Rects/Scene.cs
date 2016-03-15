@@ -14,9 +14,46 @@ namespace Rects
     {
         private List<Raytraceable> objects = null;
         private int accuracy;
-        private QuadTree quadtree;
 
-        public QuadTree QuadTree { get { return quadtree; } }
+        private QuadTree quadtree = null;
+        private BBox bbox = null;
+        private bool isDirtyQuadTree = true;
+
+        public QuadTree QuadTree { get { return GetQuadTree(); } }
+
+        private Rects.QuadTree GetQuadTree()
+        {
+            if (quadtree == null || isDirtyQuadTree)
+            {
+                bbox = CalcBBox();
+                quadtree = CalcQuadTree(bbox);
+                Debug.WriteLine("BBox: {0}", bbox);
+                isDirtyQuadTree = false;
+            }
+            return quadtree;
+        }
+
+        private BBox CalcBBox()
+        {
+            var bb = new BBox();
+            foreach (var o in objects)
+            {
+                var bb_o = o.CalcBBox();
+                if( !bb_o.IsInfinity() )
+                    bb.Feed(bb_o);
+            }
+            return bb;
+        }
+
+        private Rects.QuadTree CalcQuadTree( BBox bb )
+        {
+            return CreateTree(bb);
+        }
+
+        public void SetDirty()
+        {
+            isDirtyQuadTree = true;
+        }
         public int Objects { get { return objects.Count; } }
 
         int curz;
@@ -26,7 +63,7 @@ namespace Rects
             objects = new List<Raytraceable>();
             accuracy = accuracy_;
 
-            quadtree = new QuadTree(new BBox(0, 1, 1, 0));
+            quadtree = null;
             Clear();
         }
 
@@ -38,7 +75,7 @@ namespace Rects
         {
             o.Z = curz++;
             objects.Add(o);
-            quadtree.Add(o);
+            isDirtyQuadTree = true;
         }
 
         public Bitmap DrawSubpixel(QuadTree qt, Matrix33 m, int w, int h)
@@ -66,6 +103,20 @@ namespace Rects
             return b;
         }
 
+        public QuadTree CreateTree(BBox bb)
+        {
+            var qt = new QuadTree(bb);
+            int cnt = 0;
+            int added = 0;
+            foreach (var o in objects)
+            {
+                if (qt.Add(o) != QuadTree.Culled)
+                    added++;
+                cnt++;
+            }
+            Debug.WriteLine("QuadTree: {0}/{1}/{2}", qt, added, cnt);
+            return qt;
+        }
         public QuadTree CreateTree(Matrix33 m, int w, int h)
         {
             var p1 = (new Pointu(0, 0) * m).ToPoint();
@@ -85,7 +136,7 @@ namespace Rects
             return qt;
         }
 
-        public Bitmap DrawFast(Matrix33 m, int w, int h, int z)
+        public Bitmap DrawFast(QuadTree qt, BBox bbox, Matrix33 m, int w, int h, int z)
         {
             if (z < 1)
                 z = 1;
@@ -93,13 +144,18 @@ namespace Rects
             var hs = h / z;
             var ws = w / z;
 
+            var sw = new Stopwatch();
+            sw.Start();
             var b = new Bitmap(ws, hs);
             var g = Graphics.FromImage(b);
-            foreach (var obj in objects)
+            m = m.Shrinked(z, z);
+            foreach (var obj in qt.Tracer(bbox))
             {
                 obj.DrawFast(g, m);
             }
             g.Flush();
+            sw.Stop();
+            Debug.WriteLine("DrawFast: {0} ms", sw.ElapsedMilliseconds);
             return b;
         }
 

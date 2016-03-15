@@ -28,5 +28,6 @@ namespace Rects
         public abstract bool IsCross(BBox bbox);
         public abstract void DrawFast(Graphics g, Matrix33 m);
 
+        public abstract BBox CalcBBox();
     }
 }

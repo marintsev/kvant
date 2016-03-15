@@ -51,5 +51,10 @@ namespace Rects
             g.FillRectangle(b, (float)Math.Min(p1.x, p2.x), (float)Math.Min(p1.y, p2.y), (float)Math.Abs(p2.x - p1.x), (float)Math.Abs(p2.y - p1.y));
             b.Dispose();
         }
+
+        public override BBox CalcBBox()
+        {
+            return bbox;
+        }
     }
 }

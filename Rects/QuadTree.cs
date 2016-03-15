@@ -164,7 +164,7 @@ namespace Rects
         {
             if (objects != null)
             {
-                if (parent == null || bbox.Intersects(bb))
+                //if (parent == null || bbox.Intersects(bb))
                     foreach (var o in objects)
                         yield return o;
             }

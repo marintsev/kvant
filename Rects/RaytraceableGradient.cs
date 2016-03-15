@@ -86,5 +86,10 @@ namespace Rects
             g.FillRectangle(b, g.ClipBounds);
             b.Dispose();
         }
+
+        public override BBox CalcBBox()
+        {
+            return BBox.Infinity;
+        }
     }
 }

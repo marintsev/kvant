@@ -62,6 +62,11 @@ namespace Rects
             g.FillEllipse(b, (float)p1.x, (float)p1.y, w, h);
             b.Dispose();
         }
+
+        public override BBox CalcBBox()
+        {
+            return circ.CalcBBox();
+        }
     }
 
 

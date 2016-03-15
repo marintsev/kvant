@@ -90,25 +90,39 @@ namespace Rects
         }
 
         //private bool drawFast = true;
-
+        private int paintingThreads;
 
         private void Redraw(int width, int height, bool fast = true)
         {
+            if (width <= 0 || height <= 0)
+                return;
             UpdateProject();
             // TODO: текущая отрисовка должна иногда завершаться
             if (t != null)
                 t.Abort();
+            lock (painting)
+            {
+                paintingThreads = 0;
+            }
             t = null;
             t = new Thread(() =>
             {
+                lock (painting)
+                {
+                    paintingThreads++;
+                }
                 int green = new Random().Next(256);
 
                 var m = ConvertMatrix(Coords.Client, Coords.Model);
                 //var qt = scene.QuadTree;
-                var qt = scene.CreateTree(m, width, height);
+
                 if (fast)
                 {
-                    var b = scene.DrawFast(m.Inverted(), width, height, 1);
+                    var im = m.Inverted();
+                    var p1 = (new Pointu(0, 0) * m).ToPoint();
+                    var p2 = (new Pointu(width, height) * m).ToPoint();
+                    var bb = new BBox(p1.x, p2.x, p2.y, p1.y);
+                    var b = scene.DrawFast(scene.QuadTree, bb, im, width, height, 1);
                     lock (painting)
                     {
                         background = b;
@@ -117,6 +131,7 @@ namespace Rects
                 }
                 else
                 {
+                    var qt = scene.CreateTree(m, width, height);
                     for (int z = 64; z >= 0; z /= 2)
                     {
                         var sw = new Stopwatch();
@@ -134,9 +149,14 @@ namespace Rects
                             break;
                     }
                 }
+                lock (painting)
+                {
+                    paintingThreads--;
+                }
 
             });
             t.Start();
+
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
@@ -339,7 +359,9 @@ namespace Rects
                     center = new_center;
                     mouse = new_mouse;
                 }
-                Redraw();
+                // Если идёт отрисовка, то после завершения начать новую.
+                if (paintingThreads == 0)
+                    Redraw();
             }
 
             //Text = string.Format("{0} -> {1}, {2}", p, pp, pc);
