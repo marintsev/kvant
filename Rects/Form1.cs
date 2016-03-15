@@ -485,27 +485,29 @@ namespace Rects
 
                 pMouseHold = pModel;
                 var size = SelectionSize();
-                Debug.WriteLine("selsize: {0}, other: {1}", size, other_selection);
+                Debug.WriteLine("(size > 1)[{0}] && (!other_selection)[{1}] && IsMode(Mode.Select)[{2}] || IsMode(Mode.Move)[{3}]", 
+                    size>1,!other_selection,IsMode(Mode.Select), IsMode(Mode.Move) );
 
                 if (size == 1 && (e.Button == MouseButtons.Left || e.Button == MouseButtons.Middle))
                 {
                     AddToMode(Mode.MoveObjects);
                     SetMode(Mode.Move);
                 }
-                else if (size == 0 || ( IsMode(Mode.Select) && e.Button == MouseButtons.Left ) )
+                else if (size == 0 /*|| ( IsMode(Mode.Select) && e.Button == MouseButtons.Left )*/ )
                 {
                     DelFromMode(Mode.MoveObjects);
                     SetMode(Mode.Move);
                 }
-                else if ((size > 1 && !other_selection && IsMode(Mode.Select) && e.Button == MouseButtons.Middle) || IsMode(Mode.Move))
+                else if ((size > 1 && IsMode(Mode.Select) /*&& e.Button == MouseButtons.Middle*/) || IsMode(Mode.Move))
                 {
-                    AddToMode(Mode.MoveObjects);
+                    SetInMode(Mode.MoveObjects,!other_selection);
                     SetMode(Mode.Move);
                 }
                 else
                 {
-                    DelFromMode(Mode.MoveObjects);
-                    SetMode(Mode.Move);
+                    throw new Exception();
+                    /*DelFromMode(Mode.MoveObjects);
+                    SetMode(Mode.Move);*/
                 }
             }
             else if (IsMode(Mode.CreateRectangle) && e.Button == MouseButtons.Left)
@@ -541,9 +543,7 @@ namespace Rects
                         var shift = pp - pMouseHold;
                         Debug.WriteLine("shift: {0}", shift);
                         foreach (var so in selection)
-                        {
                             so.Move(shift);
-                        }
                         pMouseHold = pp;
                         CanUpdateScene();
                     }
@@ -719,6 +719,14 @@ namespace Rects
             mode |= (int)mode_;
             if (update)
                 UpdateUI();
+        }
+
+        private void SetInMode( Mode mode_, bool value, bool update = true )
+        {
+            if (value)
+                AddToMode(mode_, update);
+            else
+                DelFromMode(mode_, update);
         }
 
         private void ToggleInMode(Mode mode_, bool update = true)
