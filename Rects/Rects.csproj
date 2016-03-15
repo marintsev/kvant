@@ -63,6 +63,7 @@
     <Compile Include="Raytraceable.cs" />
     <Compile Include="RaytraceableCircle.cs" />
     <Compile Include="RaytraceableGradient.cs" />
+    <Compile Include="ObjRect.cs" />
     <Compile Include="RTRectangle.cs" />
     <Compile Include="Scene.cs" />
     <EmbeddedResource Include="Form1.resx">

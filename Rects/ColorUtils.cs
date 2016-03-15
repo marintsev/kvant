@@ -63,5 +63,18 @@ namespace Rects
             return Color.FromArgb(
                 (int)(a * 255.0), (int)(r * 255.0), (int)(g * 255.0), (int)(b * 255.0));
         }
+
+        public static Color Random( Random r )
+        {
+            if( r == null )
+             r = new Random();
+            return Color.FromArgb(r.Next(256), r.Next(256), r.Next(256), r.Next(256));
+        }
+
+        public static Color RandomOpaque()
+        {
+            var r = new Random();
+            return Color.FromArgb(r.Next(256), r.Next(256), r.Next(256));
+        }
     }
 }

@@ -36,16 +36,17 @@ namespace Rects
         private BBox CalcBBox()
         {
             var bb = new BBox();
-            foreach (var o in objects)
-            {
-                var bb_o = o.CalcBBox();
-                if( !bb_o.IsInfinity() )
-                    bb.Feed(bb_o);
-            }
+            lock (this)
+                foreach (var o in objects)
+                {
+                    var bb_o = o.CalcBBox();
+                    if (!bb_o.IsInfinity())
+                        bb.Feed(bb_o);
+                }
             return bb;
         }
 
-        private Rects.QuadTree CalcQuadTree( BBox bb )
+        private Rects.QuadTree CalcQuadTree(BBox bb)
         {
             return CreateTree(bb);
         }
@@ -70,11 +71,33 @@ namespace Rects
         public void Clear()
         {
             curz = 0;
+            lock (this)
+                objects.Clear();
+            isDirtyQuadTree = true;
         }
         public void Add(Raytraceable o)
         {
             o.Z = curz++;
-            objects.Add(o);
+            lock (this)
+                objects.Add(o);
+            isDirtyQuadTree = true;
+        }
+
+        public void Add(List<Raytraceable> objs)
+        {
+            lock (this)
+            {
+                int max = int.MinValue;
+                foreach (var o in objs)
+                {
+                    int z = o.Z + curz;
+                    if (z > max)
+                        max = z;
+                    o.Z = z;
+                    objects.Add(o);
+                }
+                curz = max + 1;
+            }
             isDirtyQuadTree = true;
         }
 
@@ -108,12 +131,13 @@ namespace Rects
             var qt = new QuadTree(bb);
             int cnt = 0;
             int added = 0;
-            foreach (var o in objects)
-            {
-                if (qt.Add(o) != QuadTree.Culled)
-                    added++;
-                cnt++;
-            }
+            lock (this)
+                foreach (var o in objects)
+                {
+                    if (qt.Add(o) != QuadTree.Culled)
+                        added++;
+                    cnt++;
+                }
             Debug.WriteLine("QuadTree: {0}/{1}/{2}", qt, added, cnt);
             return qt;
         }
@@ -136,6 +160,13 @@ namespace Rects
             return qt;
         }
 
+        private Font font = null;
+
+        ~Scene()
+        {
+            font.Dispose();
+        }
+
         public Bitmap DrawFast(QuadTree qt, BBox bbox, Matrix33 m, int w, int h, int z)
         {
             if (z < 1)
@@ -145,17 +176,32 @@ namespace Rects
             var ws = w / z;
 
             var sw = new Stopwatch();
+            long t1, t2;
             sw.Start();
             var b = new Bitmap(ws, hs);
             var g = Graphics.FromImage(b);
             m = m.Shrinked(z, z);
-            foreach (var obj in qt.Tracer(bbox))
+            sw.Stop();
+            t1 = sw.ElapsedMilliseconds;
+            sw.Restart();
+            var list = qt.Tracer(bbox).OrderBy(s => s.Z).ToList();
+
+            foreach (var obj in list)
             {
                 obj.DrawFast(g, m);
             }
-            g.Flush();
+            if (font == null)
+            {
+                font = new Font("arial", 12);
+            }
+            var br = new SolidBrush(Color.White);
             sw.Stop();
-            Debug.WriteLine("DrawFast: {0} ms", sw.ElapsedMilliseconds);
+            t2 = sw.ElapsedMilliseconds;
+            //Debug.WriteLine("DrawFast: {0} ms", sw.ElapsedMilliseconds);
+            g.DrawString(string.Format("Objects: {0}, Time: {1}+{2} ms", list.Count, t1, t2 ), font, br, 0, 0);
+            br.Dispose();
+            g.Flush();
+
             return b;
         }
 

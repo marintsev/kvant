@@ -116,7 +116,6 @@
             // 
             // выделениеToolStripMenuItem
             // 
-            this.выделениеToolStripMenuItem.Enabled = false;
             this.выделениеToolStripMenuItem.Name = "выделениеToolStripMenuItem";
             this.выделениеToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.выделениеToolStripMenuItem.Text = "Выделение";
@@ -124,7 +123,6 @@
             // 
             // созданиеToolStripMenuItem
             // 
-            this.созданиеToolStripMenuItem.Enabled = false;
             this.созданиеToolStripMenuItem.Name = "созданиеToolStripMenuItem";
             this.созданиеToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.созданиеToolStripMenuItem.Text = "Создание";
@@ -154,10 +152,10 @@
             // 
             // масштабированиеToolStripMenuItem
             // 
-            this.масштабированиеToolStripMenuItem.Enabled = false;
             this.масштабированиеToolStripMenuItem.Name = "масштабированиеToolStripMenuItem";
             this.масштабированиеToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.масштабированиеToolStripMenuItem.Text = "Масштабирование";
+            this.масштабированиеToolStripMenuItem.Click += new System.EventHandler(this.масштабированиеToolStripMenuItem_Click);
             // 
             // Form1
             // 

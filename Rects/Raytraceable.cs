@@ -29,5 +29,11 @@ namespace Rects
         public abstract void DrawFast(Graphics g, Matrix33 m);
 
         public abstract BBox CalcBBox();
+
+        public Raytraceable WithZ(int z)
+        {
+            Z = z;
+            return this;
+        }
     }
 }

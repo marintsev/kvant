@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define CONVERT
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,33 +13,122 @@ namespace Rects
         double left, right, top, bottom;
 
         public double Left { get { return left; } }
-        public double Right { get { return right; } }
-        public double Top { get { return top; } }
-        public double Bottom { get { return bottom; } }
+        public double Right { get { return right; } set { right = value; } }
+        public double Top { get { return top; } set { top = value; } }
+        public double Bottom { get { return bottom; } set { bottom = value; } }
         public double CenterX { get { return (left + right) / 2; } }
         public double CenterY { get { return (top + bottom) / 2; } }
+
+        public double Width { get { return right - left; } }
+        public double Height { get { return top - bottom; } }
+
+        public Point LeftTop
+        {
+            get
+            {
+                return new Point(left, top);
+            }
+        }
+
+        public Point RightTop
+        {
+            get { return new Point(right, top); }
+            set
+            {
+                var v = value;
+                Right = v.x;
+                Top = v.y;
+            }
+        }
+        public Point LeftBottom { get { return new Point(left, bottom); } }
+        public Point RightBottom
+        {
+            get { return new Point(right, bottom); }
+            set
+            {
+                var v = value;
+                Right = v.x;
+                Bottom = v.y;
+            }
+        }
 
         public static BBox Infinity = new BBox(double.NegativeInfinity, double.PositiveInfinity, double.PositiveInfinity, double.NegativeInfinity);
 
         public BBox()
-            : this(0, 0, 0, 0)
+            : this(double.NaN, double.NaN, double.NaN, double.NaN)
         {
         }
+
+        public BBox(Point p1, Point p2)
+            : this()
+        {
+            Feed(p1);
+            Feed(p2);
+        }
+
+        public void Normalize()
+        {
+            if (left > right)
+            {
+                var temp = left;
+                left = right;
+                right = temp;
+            }
+            if (bottom > top)
+            {
+                var temp = bottom;
+                bottom = top;
+                top = bottom;
+            }
+        }
+
         public BBox(double left_, double right_, double top_, double bottom_)
         {
+#if CONVERT
+            if (left_ > right_)
+            {
+                var temp = left_;
+                left_ = right_;
+                right_ = temp;
+            }
+            if (bottom_ > top_)
+            {
+                var temp = bottom_;
+                bottom_ = top_;
+                top_ = bottom_;
+            }
+#endif
             if (left_ > right_)
                 throw new ArgumentException();
             if (bottom_ > top_)
                 throw new ArgumentException();
+
             left = left_;
             right = right_;
             top = top_;
             bottom = bottom_;
         }
 
+        public static BBox FromXYWH(double x, double y, double w, double h)
+        {
+            return new BBox(
+                Math.Min(x, x + w),
+                Math.Max(x, x + w),
+                Math.Max(y, y + h),
+                Math.Min(y, y + h));
+        }
+
+        public bool IsNaN()
+        {
+            return double.IsNaN(left) || double.IsNaN(right) || double.IsNaN(top) || double.IsNaN(bottom);
+        }
+        public bool IsNull()
+        {
+            return IsNaN();
+        }
         public bool IsEmpty()
         {
-            return right <= left || top <= bottom;
+            return right <= left || top <= bottom || IsNaN();
         }
         public bool IsInside(Point p)
         {
@@ -57,17 +148,7 @@ namespace Rects
                    bb.IsInside(RightBottom);
         }
 
-        public Point LeftTop
-        {
-            get
-            {
-                return new Point(left, top);
-            }
-        }
 
-        public Point RightTop { get { return new Point(right, top); } }
-        public Point LeftBottom { get { return new Point(left, bottom); } }
-        public Point RightBottom { get { return new Point(right, bottom); } }
 
         /// <summary>
         /// Этот bbox находится внутри bb?
@@ -91,15 +172,24 @@ namespace Rects
         public void Feed(Point p)
         {
             if (IsInfinity())
-                return;
-            if (p.x < left)
-                left = p.x;
-            if (p.x > right)
-                right = p.x;
-            if (p.y < bottom)
-                bottom = p.y;
-            if (p.y > top)
-                top = p.y;
+            {
+            }
+            else if (IsNull())
+            {
+                left = right = p.x;
+                top = bottom = p.y;
+            }
+            else
+            {
+                if (p.x < left)
+                    left = p.x;
+                if (p.x > right)
+                    right = p.x;
+                if (p.y < bottom)
+                    bottom = p.y;
+                if (p.y > top)
+                    top = p.y;
+            }
         }
 
         public void Feed(BBox bb)
@@ -119,7 +209,7 @@ namespace Rects
 
         public override string ToString()
         {
-            return string.Format( "[BBox {0}:{1}, {2}:{3}]", left, right, bottom, top );
+            return string.Format("[BBox {0}:{1}, {2}:{3}]", left, right, bottom, top);
         }
     }
 

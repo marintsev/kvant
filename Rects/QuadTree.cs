@@ -107,15 +107,16 @@ namespace Rects
         public const int Culled = 0;
         private const int AddedInside = 1;
         private const int AddedIntersect = 2;
+        private const int CulledEmpty = 3;
 
-        public int AddInside(Raytraceable o)
+        public int AddInside(Raytraceable o, BBox bb)
         {
             for (int i = 0; i < 4; i++)
             {
                 var sub = PeekSubtree(i);
-                if (o.IsInsideOf(sub.bbox))
+                if (bb.IsInsideOf(sub.bbox))
                 {
-                    var code = sub.AddInside(o);
+                    var code = sub.AddInside(o, bb);
                     // Поместился целиком в одной из четвертей.
                     return AddedInside;
                 }
@@ -127,10 +128,13 @@ namespace Rects
 
         public int Add(Raytraceable o, bool res = false)
         {
+            var o_bb = o.CalcBBox();
+            if (o_bb.IsEmpty())
+                return CulledEmpty;
             // Если лежит целиком, то добавляем в наименьшую четверть, куда помещается объект
             if (o.IsInsideOf(bbox))
             {
-                return AddInside(o);
+                return AddInside(o, o_bb);
             }
             // Если пересекает
             else if (o.IsCross(bbox))
@@ -164,9 +168,10 @@ namespace Rects
         {
             if (objects != null)
             {
-                //if (parent == null || bbox.Intersects(bb))
+                if (parent == null || bbox.Intersects(bb))
                     foreach (var o in objects)
-                        yield return o;
+                        if (o.IsCross(bb))
+                            yield return o;
             }
 
             if (IsInside(a, bb))

@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace Rects
 {
@@ -14,8 +15,24 @@ namespace Rects
 
         private double x { get { return bbox.Left; } }
         private double y { get { return bbox.Bottom; } }
-        private double w { get { return bbox.Right - bbox.Left; } }
-        private double h { get { return bbox.Top - bbox.Bottom; } }
+        private double w { get { return bbox.Width; } }
+        private double h { get { return bbox.Height; } }
+
+        public Point RightBottom
+        {
+            set
+            {
+                bbox.RightBottom = value;
+            }
+        }
+
+        public Point RightTop
+        {
+            set
+            {
+                bbox.RightTop = value;
+            }
+        }
 
         public RTRectangle(double x_, double y_, double w_, double h_, Color color_)
         {
@@ -48,7 +65,10 @@ namespace Rects
             var b = new SolidBrush(color);
             var p1 = (new Pointu(x, y) * m).ToPoint();
             var p2 = (new Pointu(x + w, y + h) * m).ToPoint();
-            g.FillRectangle(b, (float)Math.Min(p1.x, p2.x), (float)Math.Min(p1.y, p2.y), (float)Math.Abs(p2.x - p1.x), (float)Math.Abs(p2.y - p1.y));
+            var bb = new BBox(p1, p2);
+            //g.FillRectangle(b, (float)Math.Min(p1.x, p2.x), (float)Math.Min(p1.y, p2.y), (float)Math.Abs(p2.x - p1.x), (float)Math.Abs(p2.y - p1.y));
+            //Debug.WriteLine("bb: {0}", bb);
+            g.FillRectangle(b, (float)bb.Left, (float)bb.Bottom, (float)bb.Width, (float)bb.Height);
             b.Dispose();
         }
 

@@ -39,11 +39,14 @@ namespace Rects
         private Matrix33 mUniformToClient = Matrix33.Identity();
         private Matrix33 mClientToWindow = Matrix33.Identity();
 
+        private List<ObjRect> objects;
+
         public Form1()
         {
             InitializeComponent();
             MouseWheel += new MouseEventHandler(Form1_MouseWheel);
 
+            objects = new List<ObjRect>();
         }
 
         private delegate Color Raytracer(double x, double y);
@@ -195,46 +198,11 @@ namespace Rects
             }
         }
 
-        private void AddRect(double x, double y, double w, double h, double l, Color color)
-        {
-            color = Color.FromArgb(127, 255, 255, 255);
-            /*scene.Add(new RTRectangle(x - l / 2, y, l, h, color));
-            scene.Add(new RTRectangle(x + w - l / 2, y, l, h, color));
-            scene.Add(new RTRectangle(x, y - l / 2, w, l, color));
-            scene.Add(new RTRectangle(x, y + h - l / 2, w, l, color));*/
 
-            scene.Add(new RTRectangle(x, y, l, h, color));
-            scene.Add(new RTRectangle(x + w - l, y, l, h, color));
-            scene.Add(new RTRectangle(x, y, w, l, color));
-            scene.Add(new RTRectangle(x, y + h - l, w, l, color));
-        }
-
-        private void AddCircles(double x, double y, double w, double h, Color circ_col, double cr, double sh)
-        {
-            scene.Add(new RaytraceableCircle(new Circle(x + sh, y + sh, cr, circ_col)));
-            scene.Add(new RaytraceableCircle(new Circle(x + w - sh, y + sh, cr, circ_col)));
-            scene.Add(new RaytraceableCircle(new Circle(x + w - sh, y + h - sh, cr, circ_col)));
-            scene.Add(new RaytraceableCircle(new Circle(x + sh, y + h - sh, cr, circ_col)));
-        }
-
-        private void AddRectangle(double x, double y, double w, double h, Color color)
-        {
-            var r = new RTRectangle(x, y, w, h, color);
-            scene.Add(r);
-            double l = 0.01;
-
-            double cr = l;
-            Color circ_col = Color.FromArgb(127, 255, 255, 255);
-
-            AddRect(x, y, w, h, l * 0.5, color);
-            AddCircles(x, y, w, h, circ_col, cr, l / 6);
-
-        }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             var r = new Random();
-            scene.Add(new RaytraceableGradient(0.5, 0.5, 0.5, 0.5));
             for (int i = 0; i < 50; i++)
             {
                 /*var c = new Circle(r.NextDouble(), r.NextDouble(),
@@ -244,17 +212,22 @@ namespace Rects
                     r.Next(256), r.Next(256), r.Next(256)
                     ));
                 scene.Add(new RaytraceableCircle(c));*/
-                AddRectangle(r.NextDouble(), r.NextDouble(),
-                    r.NextDouble() * 0.2, r.NextDouble() * 0.2,
-                    Color.FromArgb(
-                    r.Next(256),
-                    //255,
-                    r.Next(256), r.Next(256), r.Next(256)
+                objects.Add(new ObjRect(
+                    BBox.FromXYWH(r.NextDouble(), r.NextDouble(), r.NextDouble() * 0.2, r.NextDouble() * 0.2),
+                    ColorUtils.Random( r)
                     ));
             }
-
+            UpdateScene();
             UpdateProject();
             Redraw();
+        }
+
+        private void UpdateScene()
+        {
+            scene.Clear();
+            scene.Add(new RaytraceableGradient(0.5, 0.5, 0.5, 0.5));
+            foreach (var o in objects)
+                scene.Add(o.EmitObjects());
         }
 
         private void Form1_KeyPress(object sender, KeyPressEventArgs e)
@@ -334,36 +307,66 @@ namespace Rects
 
         private Point pMouseHold = Point.Invalid;
 
+        private ObjRect newRectangle = null;
+        private Point pStartPoint = Point.Invalid;
+        private Point pEndPoint = Point.Invalid;
+
+        private Color clrCurrentRect = Color.FromArgb(127, 255, 255, 255);
+
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
-            pMouseHold = Convert(new Point(e.X, e.Y), Coords.Window, Coords.Model);
-            SetMode(Mode.Move);
+            // TODO: перемещение возможно и в других режимах
+            var pMouse = new Point(e.X, e.Y);
+            if (mode == Mode.Move)
+            {
+                pMouseHold = Convert(pMouse, Coords.Window, Coords.Model);
+                SetMode(Mode.Move);
+            }
+            else if (mode == Mode.CreateRectangle)
+            {
+                pStartPoint = Convert(pMouse, Coords.Window, Coords.Model);
+                newRectangle = new ObjRect(new BBox(pStartPoint.x, pStartPoint.x, pStartPoint.y, pStartPoint.y), clrCurrentRect );
+                Debug.WriteLine("pStartPoint: {0}", pStartPoint);
+                objects.Add(newRectangle);
+            }
         }
 
         private void Form1_MouseMove(object sender, MouseEventArgs e)
         {
-            //this.Boun
-            //var p = PointToScreen(new System.Drawing.Point(e.X, e.Y));
             var pu = new Pointu(e.X, e.Y);
             var pp = Convert(pu.ToPoint(), Coords.Window, Coords.Model);
             var pc = Convert(pu.ToPoint(), Coords.Window, Coords.Uniform);
             var p = pu.ToPoint();
+
+            // TODO: status
             Text = string.Format(" Objects: {0}:{1}/{2}, {3}", scene.QuadTree.Count, scene.QuadTree.TotalCount, scene.Objects, pp);
 
-            if (!pMouseHold.IsInvalid())
+            var pMouse = new Point(e.X, e.Y);
+            if (mode == Mode.Move)
             {
-                var new_center = pMouseHold;
-                var new_mouse = Convert(new Point(e.X, e.Y), Coords.Window, Coords.Uniform);
-                Debug.WriteLine("New center: {0}", new_center);
-                Debug.WriteLine("New mouse: {0}", new_mouse);
-                lock (painting)
+                if (!pMouseHold.IsInvalid())
                 {
-                    center = new_center;
-                    mouse = new_mouse;
+                    var new_center = pMouseHold;
+                    var new_mouse = Convert(pMouse, Coords.Window, Coords.Uniform);
+                    Debug.WriteLine("New center: {0}", new_center);
+                    Debug.WriteLine("New mouse: {0}", new_mouse);
+                    lock (painting)
+                    {
+                        center = new_center;
+                        mouse = new_mouse;
+                    }
+                    // Если идёт отрисовка, то после завершения начать новую.
+                    if (paintingThreads == 0)
+                        Redraw();
                 }
-                // Если идёт отрисовка, то после завершения начать новую.
-                if (paintingThreads == 0)
-                    Redraw();
+            }
+            else if (mode == Mode.CreateRectangle && newRectangle != null)
+            {
+                pEndPoint = Convert(pMouse, Coords.Window, Coords.Model);
+                Debug.WriteLine("pEndPoint: {0}", pEndPoint);
+                newRectangle.BBox = new BBox(pStartPoint, pEndPoint);
+                UpdateScene();
+                Redraw();
             }
 
             //Text = string.Format("{0} -> {1}, {2}", p, pp, pc);
@@ -371,8 +374,21 @@ namespace Rects
 
         private void Form1_MouseUp(object sender, MouseEventArgs e)
         {
-            pMouseHold = Point.Invalid;
-            SetLastMode();
+            if (mode == Mode.Move)
+            {
+                pMouseHold = Point.Invalid;
+                SetLastMode();
+            }
+            else if (mode == Mode.CreateRectangle)
+            {
+                var pMouse = new Point(e.X, e.Y);
+                pEndPoint = Convert(pMouse, Coords.Window, Coords.Model);
+                Debug.WriteLine("pEndPoint: {0}", pEndPoint);
+                newRectangle.BBox = new BBox(pStartPoint, pEndPoint);
+                newRectangle = null;
+                UpdateScene();
+                Redraw();
+            }
         }
 
         private void Form1_MouseWheel(object sender, MouseEventArgs e)
@@ -407,8 +423,8 @@ namespace Rects
         }
 
         private enum Mode { CreateRectangle, Move, Select, Scaling };
-        private Mode mode = Mode.Move;
-        private Mode lastMode = Mode.Move;
+        private static Mode defaultMode = Mode.CreateRectangle;
+        private Mode mode = defaultMode, lastMode = defaultMode;
 
         private void SetLastMode()
         {
@@ -453,8 +469,8 @@ namespace Rects
         {
             lastMode = mode;
             mode = mode_;
-            Debug.WriteLine("{0} -> {1}",lastMode,mode_);
-            UpdateUI();            
+            Debug.WriteLine("{0} -> {1}", lastMode, mode_);
+            UpdateUI();
         }
         private void навигацияToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -469,6 +485,11 @@ namespace Rects
         private void Form1_MouseLeave(object sender, EventArgs e)
         {
             Cursor = Cursors.Arrow;
+        }
+
+        private void масштабированиеToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
         }
     }
 

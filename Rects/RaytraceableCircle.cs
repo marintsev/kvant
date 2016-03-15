@@ -26,6 +26,7 @@ namespace Rects
 
         public override bool IsInsideOf(BBox bbox)
         {
+            // TODO: CalcBBox
             return bbox.IsInside(circ.GetPoint(0)) &&
                 bbox.IsInside(circ.GetPoint(Math.PI * 0.5)) &&
                 bbox.IsInside(circ.GetPoint(Math.PI)) &&
