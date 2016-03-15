@@ -311,9 +311,12 @@ namespace Rects
 
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
+            Debug.WriteLine("Mode: {0}, {1}, {2}", mode, IsMode(Mode.Select), IsInMode(Mode.CanSelect));
+
             // TODO: перемещение возможно и в других режимах
             var pMouse = new Point(e.X, e.Y);
-            if (IsMode(Mode.Move))
+            if (IsMode(Mode.Move) ||
+                (IsMode(Mode.Select) && !IsInMode( Mode.CanSelect )))
             {
                 pMouseHold = Convert(pMouse, Coords.Window, Coords.Model);
                 SetMode(Mode.Move);
@@ -368,23 +371,48 @@ namespace Rects
             }
             else if (IsMode(Mode.Select))
             {
-                bool changed = false;
+                bool hit = false;
+                bool redraw = false;
                 foreach (var o in objects)
                 {
                     if (o.OnHover(pp))
-                        changed = true;
+                        hit = true;
                 }
-                if (changed)
+                // Если есть объекты под указателем, либо были на прошлом кадре
+                if (hit)
+                {
+                    AddToMode(Mode.CanSelect);
+                    redraw = true;
+                }
+                else
+                {
+                    //Debug.WriteLine("dehover: {0}", DehoverAll());
+                    if( DehoverAll() )
+                        redraw = true;
+                    // TODO: при наведении на фон иногда надо отрисовывать
+                    if (IsInMode(Mode.CanSelect))
+                        redraw = true;
+                    DelFromMode(Mode.CanSelect);
+                }
+                if( redraw )
                 {
                     UpdateScene();
                     Redraw();
-                    AddToMode(Mode.CanSelect);
                 }
-                else
-                    DelFromMode(Mode.CanSelect);
             }
 
             //Text = string.Format("{0} -> {1}, {2}", p, pp, pc);
+        }
+
+        private bool DehoverAll()
+        {
+            bool changed = false;
+            foreach (var o in objects)
+            {
+                if (o.Dehover())
+                    changed = true;
+            }
+            return changed;
         }
 
         private void Form1_MouseUp(object sender, MouseEventArgs e)
@@ -508,6 +536,14 @@ namespace Rects
         {
             lastMode = mode;
             mode |= (int) mode_;
+            if (update)
+                UpdateUI();
+        }
+
+        private void ToggleInMode( Mode mode_, bool update = true )
+        {
+            lastMode = mode;
+            mode ^= (int)mode_;
             if (update)
                 UpdateUI();
         }

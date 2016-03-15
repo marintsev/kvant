@@ -97,5 +97,12 @@ namespace Rects
         {
             selected = true;
         }
+
+        internal bool Dehover()
+        {
+            var last = hovered;
+            hovered = false;
+            return last;
+        }
     }
 }
