@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Threading;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 /*
  * Создание нового изображения
@@ -336,6 +337,7 @@ namespace Rects
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
             pMouseHold = Convert(new Point(e.X, e.Y), Coords.Window, Coords.Model);
+            SetMode(Mode.Move);
         }
 
         private void Form1_MouseMove(object sender, MouseEventArgs e)
@@ -370,6 +372,7 @@ namespace Rects
         private void Form1_MouseUp(object sender, MouseEventArgs e)
         {
             pMouseHold = Point.Invalid;
+            SetLastMode();
         }
 
         private void Form1_MouseWheel(object sender, MouseEventArgs e)
@@ -398,7 +401,75 @@ namespace Rects
             Redraw();
         }
 
+        private void выделениеToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SetMode(Mode.Select);
+        }
 
+        private enum Mode { CreateRectangle, Move, Select, Scaling };
+        private Mode mode = Mode.Move;
+        private Mode lastMode = Mode.Move;
+
+        private void SetLastMode()
+        {
+            SetMode(lastMode);
+        }
+        private Cursor GetCursor(Mode mode)
+        {
+            switch (mode)
+            {
+                case Mode.CreateRectangle:
+                    return Cursors.Cross;
+                case Mode.Move:
+                    return Cursors.SizeAll;
+                case Mode.Select:
+                    return Cursors.Arrow;
+                case Mode.Scaling:
+                    return Cursors.UpArrow;
+            }
+            throw new NotImplementedException();
+        }
+
+        private void SetCursor()
+        {
+            Cursor = GetCursor(mode);
+        }
+
+        private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+        }
+
+        private void созданиеToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SetMode(Mode.CreateRectangle);
+        }
+
+        private void UpdateUI()
+        {
+            SetCursor();
+        }
+
+        private void SetMode(Mode mode_)
+        {
+            lastMode = mode;
+            mode = mode_;
+            Debug.WriteLine("{0} -> {1}",lastMode,mode_);
+            UpdateUI();            
+        }
+        private void навигацияToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SetMode(Mode.Move);
+        }
+
+        private void Form1_MouseEnter(object sender, EventArgs e)
+        {
+            SetCursor();
+        }
+
+        private void Form1_MouseLeave(object sender, EventArgs e)
+        {
+            Cursor = Cursors.Arrow;
+        }
     }
 
 
