@@ -11,12 +11,27 @@ namespace Rects
     {
         private BBox bbox;
         private Color color;
+        private bool hovered, selected;
 
         public BBox BBox { get { return bbox; } set { bbox = value; } }
         public ObjRect(BBox bbox_, Color color_)
         {
             bbox = bbox_;
             color = color_;
+            hovered = false;
+            selected = false;
+        }
+
+        public bool OnHover(Point p)
+        {
+            hovered = bbox.Contains(p);
+            return hovered;
+        }
+
+        public bool OnClick(Point p)
+        {
+            selected = bbox.Contains(p);
+            return selected;
         }
 
         private void AddRect(List<Raytraceable> scene, double x, double y, double w, double h, double l, Color color)
@@ -43,7 +58,15 @@ namespace Rects
 
         private void AddRectangle(List<Raytraceable> scene, double x, double y, double w, double h, Color color)
         {
-            var r = new RTRectangle(x, y, w, h, color);
+            var mod_color = color;
+            if (hovered)
+            {
+                //mod_color = Color.FromArgb(255, color.R, color.G, color.B);
+                mod_color = ColorUtils.Enlight(color);
+            }
+
+            var r = new RTRectangle(x, y, w, h, mod_color);
+
             r.Z = 0;
             scene.Add(r);
             double l = 0.01;
@@ -52,7 +75,9 @@ namespace Rects
             Color circ_col = Color.FromArgb(127, 255, 255, 255);
 
             AddRect(scene, x, y, w, h, l * 0.5, color);
-            AddCircles(scene, x, y, w, h, circ_col, cr, l / 6);
+
+            if (selected)
+                AddCircles(scene, x, y, w, h, circ_col, cr, l / 6);
 
         }
 
@@ -61,6 +86,16 @@ namespace Rects
             var list = new List<Raytraceable>();
             AddRectangle(list, bbox.Left, bbox.Bottom, bbox.Width, bbox.Height, color);
             return list;
+        }
+
+        internal void Deselect()
+        {
+            selected = false;
+        }
+
+        internal void Select()
+        {
+            selected = true;
         }
     }
 }

@@ -34,6 +34,11 @@ namespace Rects
             return x;
         }
 
+        public static Color Enlight(Color c)
+        {
+            return Blend(c, Color.White);
+        }
+
         public static Color Blend(Color c1, Color c2)
         {
             double r1 = c1.R / 255.0;
@@ -64,10 +69,10 @@ namespace Rects
                 (int)(a * 255.0), (int)(r * 255.0), (int)(g * 255.0), (int)(b * 255.0));
         }
 
-        public static Color Random( Random r )
+        public static Color Random(Random r)
         {
-            if( r == null )
-             r = new Random();
+            if (r == null)
+                r = new Random();
             return Color.FromArgb(r.Next(256), r.Next(256), r.Next(256), r.Next(256));
         }
 

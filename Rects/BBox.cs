@@ -130,6 +130,13 @@ namespace Rects
         {
             return right <= left || top <= bottom || IsNaN();
         }
+
+        public bool Contains(Point p)
+        {
+            return IsInside(p);
+        }
+
+        [Obsolete]
         public bool IsInside(Point p)
         {
             return p.x >= left && p.x <= right && p.y >= bottom && p.y <= top;

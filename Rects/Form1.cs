@@ -93,7 +93,7 @@ namespace Rects
             }
         }
 
-        //private bool drawFast = true;
+        private bool drawFast = true;
         private int paintingThreads;
 
         private void Redraw(int width, int height, bool fast = true)
@@ -175,9 +175,11 @@ namespace Rects
             t.Abort();
         }
 
-        private void Redraw(bool fast = true)
+        private void Redraw(bool fast = true, bool interrupt = false)
         {
-            Redraw(ClientSize.Width, ClientSize.Height - menuStrip1.Height, fast);
+            var cond = interrupt ? true : paintingThreads == 0;
+            if (cond)
+                Redraw(ClientSize.Width, ClientSize.Height - menuStrip1.Height, fast);
         }
 
         private void Form1_Resize(object sender, EventArgs e)
@@ -198,23 +200,14 @@ namespace Rects
             }
         }
 
-
-
         private void Form1_Load(object sender, EventArgs e)
         {
             var r = new Random();
             for (int i = 0; i < 50; i++)
             {
-                /*var c = new Circle(r.NextDouble(), r.NextDouble(),
-                    r.NextDouble() * 0.1, Color.FromArgb(
-                    //255,
-                    r.Next(256),
-                    r.Next(256), r.Next(256), r.Next(256)
-                    ));
-                scene.Add(new RaytraceableCircle(c));*/
                 objects.Add(new ObjRect(
                     BBox.FromXYWH(r.NextDouble(), r.NextDouble(), r.NextDouble() * 0.2, r.NextDouble() * 0.2),
-                    ColorUtils.Random( r)
+                    ColorUtils.Random(r)
                     ));
             }
             UpdateScene();
@@ -224,10 +217,13 @@ namespace Rects
 
         private void UpdateScene()
         {
-            scene.Clear();
-            scene.Add(new RaytraceableGradient(0.5, 0.5, 0.5, 0.5));
-            foreach (var o in objects)
-                scene.Add(o.EmitObjects());
+            lock (scene)
+            {
+                scene.Clear();
+                scene.Add(new RaytraceableGradient(0.5, 0.5, 0.5, 0.5));
+                foreach (var o in objects)
+                    scene.Add(o.EmitObjects());
+            }
         }
 
         private void Form1_KeyPress(object sender, KeyPressEventArgs e)
@@ -317,15 +313,17 @@ namespace Rects
         {
             // TODO: перемещение возможно и в других режимах
             var pMouse = new Point(e.X, e.Y);
-            if (mode == Mode.Move)
+            if (IsMode(Mode.Move))
             {
                 pMouseHold = Convert(pMouse, Coords.Window, Coords.Model);
                 SetMode(Mode.Move);
             }
-            else if (mode == Mode.CreateRectangle)
+            else if (IsMode(Mode.CreateRectangle))
             {
                 pStartPoint = Convert(pMouse, Coords.Window, Coords.Model);
-                newRectangle = new ObjRect(new BBox(pStartPoint.x, pStartPoint.x, pStartPoint.y, pStartPoint.y), clrCurrentRect );
+                newRectangle = new ObjRect(new BBox(pStartPoint.x, pStartPoint.x, pStartPoint.y, pStartPoint.y), clrCurrentRect);
+                DeselectAll();
+                newRectangle.Select();
                 Debug.WriteLine("pStartPoint: {0}", pStartPoint);
                 objects.Add(newRectangle);
             }
@@ -342,7 +340,7 @@ namespace Rects
             Text = string.Format(" Objects: {0}:{1}/{2}, {3}", scene.QuadTree.Count, scene.QuadTree.TotalCount, scene.Objects, pp);
 
             var pMouse = new Point(e.X, e.Y);
-            if (mode == Mode.Move)
+            if (IsMode(Mode.Move))
             {
                 if (!pMouseHold.IsInvalid())
                 {
@@ -360,7 +358,7 @@ namespace Rects
                         Redraw();
                 }
             }
-            else if (mode == Mode.CreateRectangle && newRectangle != null)
+            else if (IsMode(Mode.CreateRectangle) && newRectangle != null)
             {
                 pEndPoint = Convert(pMouse, Coords.Window, Coords.Model);
                 Debug.WriteLine("pEndPoint: {0}", pEndPoint);
@@ -368,18 +366,35 @@ namespace Rects
                 UpdateScene();
                 Redraw();
             }
+            else if (IsMode(Mode.Select))
+            {
+                bool changed = false;
+                foreach (var o in objects)
+                {
+                    if (o.OnHover(pp))
+                        changed = true;
+                }
+                if (changed)
+                {
+                    UpdateScene();
+                    Redraw();
+                    AddToMode(Mode.CanSelect);
+                }
+                else
+                    DelFromMode(Mode.CanSelect);
+            }
 
             //Text = string.Format("{0} -> {1}, {2}", p, pp, pc);
         }
 
         private void Form1_MouseUp(object sender, MouseEventArgs e)
         {
-            if (mode == Mode.Move)
+            if (IsMode(Mode.Move))
             {
                 pMouseHold = Point.Invalid;
                 SetLastMode();
             }
-            else if (mode == Mode.CreateRectangle)
+            else if (IsMode(Mode.CreateRectangle))
             {
                 var pMouse = new Point(e.X, e.Y);
                 pEndPoint = Convert(pMouse, Coords.Window, Coords.Model);
@@ -388,6 +403,34 @@ namespace Rects
                 newRectangle = null;
                 UpdateScene();
                 Redraw();
+            }
+            else if (IsMode(Mode.Select))
+            {
+                var pMouse = new Point(e.X, e.Y);
+                var pModel = Convert(pMouse, Coords.Window, Coords.Model);
+                var changed = false;
+                foreach (var o in objects)
+                    if (o.OnClick(pModel))
+                        changed = true;
+                if (changed)
+                {
+                    UpdateScene();
+                    Redraw();
+                }
+                else
+                {
+                    DeselectAll();
+                    UpdateScene();
+                    Redraw();
+                }
+            }
+        }
+
+        private void DeselectAll()
+        {
+            foreach (var o in objects)
+            {
+                o.Deselect();
             }
         }
 
@@ -414,7 +457,7 @@ namespace Rects
                 center = new_center;
                 mouse = new_mouse;
             }
-            Redraw();
+            Redraw(drawFast, false);
         }
 
         private void выделениеToolStripMenuItem_Click(object sender, EventArgs e)
@@ -422,33 +465,79 @@ namespace Rects
             SetMode(Mode.Select);
         }
 
-        private enum Mode { CreateRectangle, Move, Select, Scaling };
-        private static Mode defaultMode = Mode.CreateRectangle;
-        private Mode mode = defaultMode, lastMode = defaultMode;
+
+        // =========================== Mode =========================
+        // TODO: Сделать проще
+        private enum Mode { CreateRectangle = 0, Move = 1, Select = 2, Scaling = 3, CanSelect = 4 };
+        private int modeMask = (1<<2)-1;
+        private static int defaultMode = (int) Mode.Select;
+        private int mode = defaultMode, lastMode = defaultMode;
 
         private void SetLastMode()
         {
-            SetMode(lastMode);
+            SetMode( (Mode) lastMode);
         }
-        private Cursor GetCursor(Mode mode)
+        private Cursor GetCursor()
         {
-            switch (mode)
+            if (IsMode(Mode.CreateRectangle))
+                return Cursors.Cross;
+            else if (IsMode(Mode.Move))
+                return Cursors.SizeAll;
+            else if (IsMode(Mode.Select))
             {
-                case Mode.CreateRectangle:
-                    return Cursors.Cross;
-                case Mode.Move:
-                    return Cursors.SizeAll;
-                case Mode.Select:
+                if (IsMode(Mode.CanSelect))
+                    return Cursors.Hand;
+                else
                     return Cursors.Arrow;
-                case Mode.Scaling:
-                    return Cursors.UpArrow;
             }
+            else if (IsMode(Mode.Scaling))
+                return Cursors.UpArrow;
             throw new NotImplementedException();
+        }
+
+        private void SetMode(Mode mode_)
+        {
+            lastMode = mode;
+            mode &= ~modeMask;
+            mode |= (int) mode_;
+            Debug.WriteLine("{0} -> {1}", lastMode, mode_);
+            UpdateUI();
+        }
+
+        private void AddToMode(Mode mode_, bool update = true)
+        {
+            lastMode = mode;
+            mode |= (int) mode_;
+            if (update)
+                UpdateUI();
+        }
+
+        private void DelFromMode(Mode mode_, bool update = true)
+        {
+            lastMode = mode;
+            mode &= ~((int)mode_);
+            if (update)
+                UpdateUI();
+        }
+
+        private bool IsMode(Mode mode_)
+        {
+            return (mode & modeMask) == (int) mode_;
+        }
+
+        private Mode GetMode(Mode mode_)
+        {
+            return (Mode) (mode & modeMask);
+        }
+
+        private bool IsInMode(Mode mode_)
+        {
+            return (mode & (int)mode_) != 0;
         }
 
         private void SetCursor()
         {
-            Cursor = GetCursor(mode);
+            Cursor = GetCursor();
         }
 
         private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
@@ -465,13 +554,8 @@ namespace Rects
             SetCursor();
         }
 
-        private void SetMode(Mode mode_)
-        {
-            lastMode = mode;
-            mode = mode_;
-            Debug.WriteLine("{0} -> {1}", lastMode, mode_);
-            UpdateUI();
-        }
+        
+
         private void навигацияToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SetMode(Mode.Move);
@@ -489,7 +573,7 @@ namespace Rects
 
         private void масштабированиеToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            SetMode(Mode.Scaling);
         }
     }
 
