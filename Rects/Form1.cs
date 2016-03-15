@@ -12,14 +12,21 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 /*
- * Создание нового изображения
- * Создание прямоугольника
- * Удаление прямоугольника
- * Изменение положения или размера прямоугольника
- * Отображении истории изменения изображения (список команд)
- * Отмена единичной команды (Undo)
- * Повторение единичной команды (Redo)
- * Отмена группы команд
+ * 1? Создание нового изображения
+ * 2? Создание прямоугольника
+ * 3? Удаление прямоугольника
+ * TODO: Контекстное меню по правой кнопке
+ * 4. Изменение положения или размера прямоугольника
+ * TODO: Изменение размера
+ * 5. Отображении истории изменения изображения (список команд)
+ * 6. Отмена единичной команды (Undo)
+ * 7. Повторение единичной команды (Redo)
+ * 8. Отмена группы команд
+ * 
+ * TODO: Сохранение сцены
+ * TODO: Загрузка сцены
+ * TODO: Сохранение изображения
+ * TODO: Загрузка изображения
  */
 
 namespace Rects
@@ -256,9 +263,10 @@ namespace Rects
             }
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void CreateNewScene()
         {
             var r = new Random();
+            objects.Clear();
             for (int i = 0; i < 50; i++)
             {
                 objects.Add(new ObjRect(
@@ -267,9 +275,14 @@ namespace Rects
                     ));
             }
             UpdateScene();
-            UpdateProject();
             SetDirty();
             CanRedraw();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            UpdateProject();
+            CreateNewScene();
         }
 
         private void UpdateScene()
@@ -781,6 +794,7 @@ namespace Rects
             miSelect.Checked = IsMode(Mode.Select);
             miScale.Checked = IsMode(Mode.Scaling);
             miCreateRectangle.Checked = IsMode(Mode.CreateRectangle);
+            miDelete.Enabled = !IsSelectionEmpty();
         }
 
         private void навигацияToolStripMenuItem_Click(object sender, EventArgs e)
@@ -831,6 +845,21 @@ namespace Rects
                 DeleteSelection();
             }
 
+        }
+
+        private void miDelete_Click(object sender, EventArgs e)
+        {
+            DeleteSelection();
+        }
+
+        private void miCreateNewImage_Click(object sender, EventArgs e)
+        {
+            CreateNewScene();
+        }
+
+        private void miQuit_Click(object sender, EventArgs e)
+        {
+            Close();
         }
     }
 

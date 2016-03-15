@@ -31,18 +31,18 @@
             this.components = new System.ComponentModel.Container();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.изображениеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.создатьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.miCreateNewImage = new System.Windows.Forms.ToolStripMenuItem();
             this.открытьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.сохранитьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.выходToolStripMenuItem = new System.Windows.Forms.ToolStripSeparator();
-            this.выходToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.miQuit = new System.Windows.Forms.ToolStripMenuItem();
             this.инструментыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.miSelect = new System.Windows.Forms.ToolStripMenuItem();
             this.miCreateRectangle = new System.Windows.Forms.ToolStripMenuItem();
             this.miMove = new System.Windows.Forms.ToolStripMenuItem();
             this.miScale = new System.Windows.Forms.ToolStripMenuItem();
             this.объектToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.удалитьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.miDelete = new System.Windows.Forms.ToolStripMenuItem();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -63,47 +63,47 @@
             // изображениеToolStripMenuItem
             // 
             this.изображениеToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.создатьToolStripMenuItem,
+            this.miCreateNewImage,
             this.открытьToolStripMenuItem,
             this.сохранитьToolStripMenuItem,
             this.выходToolStripMenuItem,
-            this.выходToolStripMenuItem1});
+            this.miQuit});
             this.изображениеToolStripMenuItem.Name = "изображениеToolStripMenuItem";
             this.изображениеToolStripMenuItem.Size = new System.Drawing.Size(95, 20);
             this.изображениеToolStripMenuItem.Text = "Изображение";
             // 
-            // создатьToolStripMenuItem
+            // miCreateNewImage
             // 
-            this.создатьToolStripMenuItem.Enabled = false;
-            this.создатьToolStripMenuItem.Name = "создатьToolStripMenuItem";
-            this.создатьToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
-            this.создатьToolStripMenuItem.Text = "Создать";
+            this.miCreateNewImage.Name = "miCreateNewImage";
+            this.miCreateNewImage.Size = new System.Drawing.Size(152, 22);
+            this.miCreateNewImage.Text = "Создать";
+            this.miCreateNewImage.Click += new System.EventHandler(this.miCreateNewImage_Click);
             // 
             // открытьToolStripMenuItem
             // 
             this.открытьToolStripMenuItem.Enabled = false;
             this.открытьToolStripMenuItem.Name = "открытьToolStripMenuItem";
-            this.открытьToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+            this.открытьToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.открытьToolStripMenuItem.Text = "Открыть";
             // 
             // сохранитьToolStripMenuItem
             // 
             this.сохранитьToolStripMenuItem.Enabled = false;
             this.сохранитьToolStripMenuItem.Name = "сохранитьToolStripMenuItem";
-            this.сохранитьToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+            this.сохранитьToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.сохранитьToolStripMenuItem.Text = "Сохранить";
             // 
             // выходToolStripMenuItem
             // 
             this.выходToolStripMenuItem.Name = "выходToolStripMenuItem";
-            this.выходToolStripMenuItem.Size = new System.Drawing.Size(129, 6);
+            this.выходToolStripMenuItem.Size = new System.Drawing.Size(149, 6);
             // 
-            // выходToolStripMenuItem1
+            // miQuit
             // 
-            this.выходToolStripMenuItem1.Enabled = false;
-            this.выходToolStripMenuItem1.Name = "выходToolStripMenuItem1";
-            this.выходToolStripMenuItem1.Size = new System.Drawing.Size(132, 22);
-            this.выходToolStripMenuItem1.Text = "Выход";
+            this.miQuit.Name = "miQuit";
+            this.miQuit.Size = new System.Drawing.Size(152, 22);
+            this.miQuit.Text = "Выход";
+            this.miQuit.Click += new System.EventHandler(this.miQuit_Click);
             // 
             // инструментыToolStripMenuItem
             // 
@@ -147,17 +147,17 @@
             // объектToolStripMenuItem
             // 
             this.объектToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.удалитьToolStripMenuItem});
+            this.miDelete});
             this.объектToolStripMenuItem.Name = "объектToolStripMenuItem";
             this.объектToolStripMenuItem.Size = new System.Drawing.Size(59, 20);
             this.объектToolStripMenuItem.Text = "Объект";
             // 
-            // удалитьToolStripMenuItem
+            // miDelete
             // 
-            this.удалитьToolStripMenuItem.Enabled = false;
-            this.удалитьToolStripMenuItem.Name = "удалитьToolStripMenuItem";
-            this.удалитьToolStripMenuItem.Size = new System.Drawing.Size(118, 22);
-            this.удалитьToolStripMenuItem.Text = "Удалить";
+            this.miDelete.Name = "miDelete";
+            this.miDelete.Size = new System.Drawing.Size(152, 22);
+            this.miDelete.Text = "Удалить";
+            this.miDelete.Click += new System.EventHandler(this.miDelete_Click);
             // 
             // timer1
             // 
@@ -196,16 +196,16 @@
 
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem изображениеToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem создатьToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem miCreateNewImage;
         private System.Windows.Forms.ToolStripMenuItem открытьToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem сохранитьToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator выходToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem выходToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem miQuit;
         private System.Windows.Forms.ToolStripMenuItem инструментыToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem miSelect;
         private System.Windows.Forms.ToolStripMenuItem miCreateRectangle;
         private System.Windows.Forms.ToolStripMenuItem объектToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem удалитьToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem miDelete;
         private System.Windows.Forms.ToolStripMenuItem miMove;
         private System.Windows.Forms.ToolStripMenuItem miScale;
         private System.Windows.Forms.Timer timer1;
